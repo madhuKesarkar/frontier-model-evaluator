@@ -1,0 +1,32 @@
+# Secrets
+.env
+.env.*
+!.env.example
+config/models.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+.next/
+dist/
+coverage/
+playwright-report/
+test-results/
+
+# Pact
+pacts/
+logs/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

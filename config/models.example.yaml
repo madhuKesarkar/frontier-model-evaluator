@@ -1,0 +1,27 @@
+# Copy to config/models.yaml and fill in current model IDs and prices (per 1M tokens).
+# See SPEC.md FR-01. API keys go in environment variables, never in this file.
+models:
+  - key: anthropic-flagship
+    provider: anthropic
+    model_id: "<current-model-id>"
+    display_name: "<Display Name>"
+    context_window: 200000
+    price_input_per_mtok: 0.00
+    price_output_per_mtok: 0.00
+    enabled: true
+  - key: openai-flagship
+    provider: openai
+    model_id: "<current-model-id>"
+    display_name: "<Display Name>"
+    context_window: 0
+    price_input_per_mtok: 0.00
+    price_output_per_mtok: 0.00
+    enabled: true
+  - key: google-flagship
+    provider: google
+    model_id: "<current-model-id>"
+    display_name: "<Display Name>"
+    context_window: 0
+    price_input_per_mtok: 0.00
+    price_output_per_mtok: 0.00
+    enabled: true
