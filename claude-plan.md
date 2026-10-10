@@ -74,4 +74,5 @@ BE-AC-21/22 also get a fixture-based unit test of the *calculation* (agreement r
 | 2026-10-10 | Decisions D-6..D-11 recorded | merged | PR #2 |
 | 2026-10-10 | G2 plan approved by architect | approved | — |
 | 2026-10-10 | 0.1 Repo tooling | merged (PR #3) | pre-commit hooks pass; gitleaks finds no leaks in history and catches a planted key; ruff flags planted S105/S602/F401 |
-| 2026-10-10 | 0.2 Backend skeleton | in review | ruff/mypy(strict)/pytest pass; health test fails when endpoint broken; live server returns 200 {"status":"ok"} on 127.0.0.1:8000 |
+| 2026-10-10 | 0.2 Backend skeleton | merged (PR #4); verified on architect's Mac (Python 3.12.4, 2 passed) | ruff/mypy(strict)/pytest pass; health test fails when endpoint broken; live server returns 200 {"status":"ok"} on 127.0.0.1:8000 |
+| 2026-10-10 | 0.3 Frontend skeleton | in review | lint/typecheck/3 tests/build pass; 2 mutation checks caught (1 after strengthening a weak test); headless Chromium shows connected + not-reachable states via Vite proxy |
