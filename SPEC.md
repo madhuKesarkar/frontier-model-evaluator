@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Version | 0.1 (Draft) |
+| Version | 0.2 (Draft) — zero-cost access model, G1 decisions applied |
 | Status | Awaiting spec approval (Gate G1) |
 | Autonomy level | **Level 3: conditional autonomy** (see §9) |
 | Owner | Madhu Kesarkar (QA Lead) |
@@ -26,7 +26,7 @@ Build a web application that:
 ### 1.3 Success metrics
 | ID | Metric | Target |
 |---|---|---|
-| SM-1 | Full suite run for one model completes | ≤ 30 min |
+| SM-1 | Full v1 suite run for one model completes within that provider's free/subscription quota | ≤ 1 quota window (e.g., one 5-hour Claude window) |
 | SM-2 | Score reproducibility: re-run variance per category | ≤ 0.5 points |
 | SM-3 | LLM-judge agreement with human-labelled golden set (within ±1) | ≥ 80% |
 | SM-4 | User reaches a fit verdict from the home page | ≤ 3 clicks |
@@ -43,6 +43,8 @@ Build a web application that:
 - No multi-tenant SaaS, billing or user sign-up. Single team, single deployment.
 - No image, audio or video evaluation. Text and code only.
 - No real-time streaming evaluation. Batch runs only.
+- **No paid API usage.** v1 must run at $0 extra cost (see §3.4).
+- No login or user accounts, and no user-uploaded tasks (v2 candidate).
 
 ---
 
@@ -67,7 +69,7 @@ Build a web application that:
 
 ### FR-01 Model registry
 - Models are defined in `config/models.yaml`, not hard-coded.
-- Each entry has: provider, model ID, display name, version or date, context window, input and output price per 1M tokens, and enabled flag.
+- Each entry has: provider, **access mode** (§3.4), model ID, display name, version or date, context window, public input and output list price per 1M tokens (for API-equivalent cost display only), and enabled flag.
 - Adding a model requires a config change only, no code change.
 
 ```yaml
@@ -75,29 +77,33 @@ Build a web application that:
 models:
   - key: anthropic-flagship
     provider: anthropic
+    access_mode: claude_code_cli      # see §3.4
     model_id: "<current-model-id>"
     display_name: "<Display Name>"
     context_window: 200000
+    # Public API list prices, used ONLY to show "API-equivalent cost". Nothing is billed.
     price_input_per_mtok: 0.00
     price_output_per_mtok: 0.00
     enabled: true
 ```
 
 ### FR-02 Task suite
-- The suite covers **6 categories × 3 tiers**, with at least **5 tasks per cell** (90 or more tasks in v1).
+- The suite covers **6 categories × 3 tiers**, with at least **2 tasks per cell** (36 or more tasks in v1). This keeps a full run inside free and subscription quotas; v2 grows to 5 per cell.
 - Each task is versioned. A content hash is stored so every result is tied to the exact prompt version used.
 - Each task declares a checker type: `unit_tests`, `json_schema`, `exact_match`, `regex`, `llm_judge`, or a combination.
 
 ### FR-03 Evaluation runner
-- A user can start a run by choosing models, categories, tiers and a repeat count (default n = 3).
+- A user can start a run by choosing models, categories, tiers and a repeat count (default n = 1; n = 3 allowed for consistency checks).
 - The runner uses fixed parameters per run (temperature, max tokens, seed where supported) and stores them with the run.
 - Rate limits and transient errors are retried with exponential backoff (max 3 retries). Timeouts are recorded as defects, not hidden.
+- When a provider reports that the **plan quota is exhausted** (e.g., subscription usage limit reached), the run pauses that model with status `paused_quota` and can be resumed later. This is not recorded as a model defect.
 - Generated code is executed **only in a sandboxed container** with no network access and CPU, memory and time limits.
-- Each run has a **budget cap in USD**. The run stops cleanly when the cap is reached and is marked `stopped_budget`.
+- Each run has a **call cap** (max model calls, including judge calls). The run stops cleanly when the cap is reached and is marked `stopped_cap`. No run may use a paid API key (§3.4).
 
 ### FR-04 Scoring (1–5 per category)
 - Each result is scored 1–5 by combining automated checks with an LLM judge that follows the rubric below.
-- **A model is never judged by itself.** Two judges from different providers score each result. If they disagree by more than 1 point, the result is flagged for human review.
+- **A model is never judged by itself.** Each result is judged by the **other two providers** (e.g., a Claude result is judged by GPT and Gemini). If they disagree by more than 1 point, the result is flagged for human review.
+- To save quota, the LLM judge is called **only for tasks whose checker includes `llm_judge`**. Tasks fully covered by deterministic checks (unit tests, schema, exact match, regex) are scored without a judge.
 - Category score = mean of task scores across tiers, shown to 1 decimal. Per-tier scores are also shown.
 
 | Score | Label | Rubric |
@@ -109,10 +115,12 @@ models:
 | 1 | Fail | Wrong, unsafe, wrongly refused, an S1 defect, or no usable output |
 
 ### FR-05 Token and cost tracking
-- For every result, store: input tokens, output tokens, reasoning/thinking tokens (if reported), cached tokens (if reported), cost in USD, and latency in ms.
-- Provider-reported counts are the source of truth. If a provider doesn't report a value, it is estimated and labelled **"estimated"** in the UI.
+- For every result, store: input tokens, output tokens, reasoning/thinking tokens (if reported), cached tokens (if reported), API-equivalent cost in USD, and latency in ms.
+- Provider- or CLI-reported counts are the source of truth. If a value isn't reported (e.g., manual mode), it is estimated with a tokenizer and labelled **"estimated"** in the UI.
+- Each result also records **overhead tokens** where the access mode adds its own context (e.g., a CLI's system prompt), so task tokens can be shown separately from tool overhead.
 - Aggregate per model × tier: average and total tokens, average cost per task, and p50/p95 latency.
-- The UI must note that **tokenizers differ by provider**, so raw token counts are not directly comparable. Cost per task is the comparable measure.
+- Cost is shown as **"API-equivalent cost"**: tokens × public list price. It is what the task *would* cost on the paid API; the project itself pays nothing.
+- The UI must note that **tokenizers differ by provider**, so raw token counts are not directly comparable. API-equivalent cost per task is the comparable measure.
 
 ### FR-06 Defect detection and logging
 - Defects are created automatically (from failed checks), by an LLM judge, or manually by a reviewer.
@@ -156,7 +164,7 @@ models:
 - **Task drill-down**: each task's prompt, response, checks, judge rationale, tokens and cost.
 
 ### FR-09 Model comparison
-- A user can select 2–4 models and view them side by side: category scores, cost per tier, and defect counts by type.
+- A user can select 2–4 models and view them side by side: category scores, API-equivalent cost per tier, and defect counts by type.
 
 ### FR-10 Use-case fit
 - A user creates a **use-case profile** with:
@@ -196,6 +204,25 @@ models:
 | Mid | 2–5 steps, several constraints, moderate context | 500–3,000 tokens |
 | Complex | Multi-file or long-context work, ambiguity, or multi-turn tool use | > 3,000 tokens |
 
+## 3.4 Zero-cost access model (decided at G1)
+
+The project must run at **$0 extra cost**, using the owner's existing **Claude Pro** and **ChatGPT Go** subscriptions plus Google's **free Gemini API tier**. Consumer subscriptions do not include API keys, so each provider is reached through an *access mode*:
+
+| Provider | Access mode | How it works | Token data | Limits |
+|---|---|---|---|---|
+| Anthropic | `claude_code_cli` | Claude Code in headless mode (`claude -p … --output-format json`), signed in with Claude Pro. Tools disabled; custom system prompt to minimise overhead. | Reported by CLI (input, output, cache) | Pro usage limits (rolling 5-hour windows) |
+| OpenAI | `codex_cli` | Codex CLI non-interactive (`codex exec --json`), signed in with ChatGPT Go. Sandbox read-only, no tools. | Reported in JSON events | Go plan Codex limits (low; plan small runs) |
+| Google | `gemini_free_api` | Gemini API with a free-tier AI Studio key. **Flash-class models only**; Pro models are paid. | Reported by API | Free-tier RPM/RPD shown in AI Studio |
+| Any | `manual` | App shows the prompt; user pastes it into the chat app and pastes the reply back. Fallback when a CLI or quota is unavailable. | Estimated with tokenizer | User's own time |
+
+Rules:
+- **Runs execute on the owner's computer**, where the CLIs are signed in. CI never calls any model; it uses recorded fixtures only.
+- **No paid API keys.** Startup fails if `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` is set, so a paid key can't be used by accident. Only `GEMINI_API_KEY` (free tier) is allowed.
+- **Fairness caveat shown in the UI:** results reflect the model *as reached through that access mode*. CLI wrappers add a system prompt and settings the API wouldn't, and the free Gemini tier only offers Flash models, so the line-up is "Claude (Pro plan) vs GPT (Go plan) vs Gemini Flash (free tier)", not three flagship APIs.
+- **Data caveat:** Google may use free-tier prompts to improve its products, and human reviewers may read them. The suite must contain no confidential or personal data.
+- **Terms:** subscriptions are used for the owner's personal evaluation through official clients (Claude Code, Codex CLI), within plan limits. No account sharing, no reselling, no high-volume scraping.
+- Adapters share one interface, so switching any provider to a paid API later is a config change (v2).
+
 ---
 
 ## 4. Acceptance Criteria
@@ -208,24 +235,27 @@ Format: **Given / When / Then**. Each AC traces to an FR and must have at least 
 - **AC-03** Given a model with `enabled: false`, when a user starts a run, then that model cannot be selected.
 
 ### Task suite and runner (FR-02, FR-03)
-- **AC-04** Given the v1 suite, when it is validated, then every category × tier cell has at least 5 tasks and every task has a checker and a hash.
+- **AC-04** Given the v1 suite, when it is validated, then every category × tier cell has at least 2 tasks and every task has a checker and a hash.
 - **AC-05** Given a run with 2 models and n = 3, when it completes, then there are exactly 2 × tasks × 3 results, each with status `scored`, `error`, or `skipped`.
-- **AC-06** Given a provider returns HTTP 429, when the runner calls it, then it retries with backoff up to 3 times before recording a `TIMEOUT_ERROR` defect.
-- **AC-07** Given a $5 budget cap, when cumulative spend reaches $5, then no new calls start, in-flight calls finish, and the run status is `stopped_budget`.
+- **AC-06** Given a provider returns a transient rate-limit error, when the runner calls it, then it retries with backoff up to 3 times before recording a `TIMEOUT_ERROR` defect.
+- **AC-06b** Given a provider reports the plan quota is exhausted, when the runner calls it, then that model's remaining tasks are marked `paused_quota`, no defect is recorded, and the run can be resumed later without repeating finished tasks.
+- **AC-07** Given a call cap of 50, when the 50th model call (including judge calls) is made, then no new calls start, in-flight calls finish, and the run status is `stopped_cap`.
+- **AC-07b** Given `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` is set in the environment, when the app starts, then startup fails with a message explaining that paid API keys are not allowed.
 - **AC-08** Given generated code that tries a network call, when executed in the sandbox, then the call is blocked and the run continues.
 - **AC-09** Given generated code that runs past the sandbox time limit, when executed, then it is killed and the result is scored with an `INCORRECT_CODE` or `TIMEOUT_ERROR` defect.
 
 ### Scoring (FR-04)
 - **AC-10** Given any result, when it is scored, then the score is an integer from 1 to 5 and a rationale is stored.
-- **AC-11** Given a result from model X, when judges are assigned, then neither judge is model X.
+- **AC-11** Given a result from provider X, when judges are assigned, then neither judge is from provider X.
 - **AC-12** Given two judge scores that differ by more than 1, when scoring completes, then the result is flagged `needs_review` and is visible in a review queue.
 - **AC-13** Given a code task whose unit tests all fail, when scored, then the score is ≤ 2, whatever the judge says.
 - **AC-14** Given the human-labelled golden set, when the judge calibration test runs, then agreement within ±1 is ≥ 80% (SM-3).
 
 ### Tokens and cost (FR-05)
 - **AC-15** Given a completed result, when stored, then input tokens, output tokens, cost and latency are all present and non-negative.
-- **AC-16** Given known token counts and prices, when cost is calculated, then it equals `(in × price_in + out × price_out) / 1,000,000`, accurate to $0.000001.
-- **AC-17** Given a provider that doesn't report reasoning tokens, when shown in the UI, then the value shows "n/a" or "estimated", never 0.
+- **AC-16** Given known token counts and list prices, when API-equivalent cost is calculated, then it equals `(in × price_in + out × price_out) / 1,000,000`, accurate to $0.000001, and is labelled "API-equivalent".
+- **AC-17** Given a provider or access mode that doesn't report a token field (e.g., reasoning tokens, or any field in manual mode), when shown in the UI, then the value shows "n/a" or "estimated", never 0.
+- **AC-17b** Given a result from a CLI access mode, when shown in the UI, then task tokens and CLI overhead tokens are shown separately, and the access mode is visible on the model page.
 - **AC-18** Given a model detail page, when the token panel loads, then averages and totals are shown separately for Simple, Mid and Complex.
 
 ### Defects (FR-06)
@@ -259,7 +289,7 @@ Format: **Given / When / Then**. Each AC traces to an FR and must have at least 
 | Area | Requirement |
 |---|---|
 | Security | API keys only in env vars / secret store; never logged or sent to the browser. The sandbox has no network and runs as a non-root user. |
-| Cost control | Per-run budget cap (FR-03). CI never calls live providers except in the nightly job, which has its own cap. |
+| Cost control | $0 extra spend. No paid API keys (AC-07b). Per-run call cap (FR-03). CI never calls any model. |
 | Reproducibility | Pinned model versions, stored parameters, task hashes, seeded runs where the provider supports it. |
 | Performance | API p95 < 500 ms for read endpoints on a seeded DB. UI page load < 2 s. |
 | Reliability | Runs can be resumed after a crash. Results are written per task, not only at the end. |
@@ -274,16 +304,18 @@ Format: **Given / When / Then**. Each AC traces to an FR and must have at least 
 | Layer | Choice | Reason |
 |---|---|---|
 | Eval engine and API | **Python 3.12, FastAPI, Pydantic v2** | Strong LLM SDK ecosystem; typed request/response models |
-| LLM access | **Provider adapter interface** using official SDKs (Anthropic, OpenAI, Google GenAI). LiteLLM is an optional alternative. | One interface; provider-reported token usage captured accurately |
-| Background jobs | **arq + Redis** | Async workers for long runs; resumable |
-| Database | **PostgreSQL 16** (SQLite allowed for local dev), **SQLAlchemy 2 + Alembic** | Relational data, migrations |
-| Code sandbox | **Docker** container (no network, CPU/mem/time limits, non-root) | Safe execution of generated code |
+| LLM access | **Provider adapter interface** with four adapters: Claude Code CLI (headless), Codex CLI (`exec --json`), Google GenAI SDK (free tier), and manual paste | $0 cost using existing subscriptions; reported token usage captured where available |
+| Background jobs | **In-process asyncio job runner** with run state in the DB | No Redis needed; resumable after quota pauses |
+| Database | **SQLite**, **SQLAlchemy 2 + Alembic** (Postgres-compatible schema for later) | Free, zero setup, single-user local app |
+| Code sandbox | **Docker** container (no network, CPU/mem/time limits, non-root) | Safe execution of generated code; free locally |
+| Tokenizers (estimates) | **tiktoken** for OpenAI-style counts; character-ratio fallback for others, labelled "estimated" | Manual mode and missing fields |
 | Frontend | **Next.js (App Router) + TypeScript, Tailwind CSS, shadcn/ui, Recharts, TanStack Query** | Fast, typed, accessible components and charts |
 | Unit/integration tests | **pytest, pytest-asyncio, respx** with recorded provider fixtures; **Vitest** for frontend | No live API calls in normal CI |
 | Contract tests | **Pact** (pact-js consumer in frontend, pact-python provider verification) | UI ↔ API contract safety |
 | E2E and accessibility | **Playwright + @axe-core/playwright** | User journeys and AC-33 |
 | Code quality | ruff, mypy (strict), ESLint, Prettier, pre-commit, gitleaks | Lint, types, secret scanning |
-| CI/CD | **GitHub Actions**, Docker Compose | PR checks plus a nightly live-eval job with a budget cap |
+| CI/CD | **GitHub Actions** (free minutes), Docker Compose for local run | PR checks only, with recorded fixtures. Live evals run locally, never in CI |
+| Hosting | **Local only** (`docker compose up` or `make dev`) | $0; no cloud hosting in v1 |
 
 ---
 
@@ -292,13 +324,13 @@ Format: **Given / When / Then**. Each AC traces to an FR and must have at least 
 ```mermaid
 flowchart LR
   UI[Next.js UI] -->|REST/JSON| API[FastAPI]
-  API --> DB[(PostgreSQL)]
-  API -->|enqueue run| Q[(Redis)]
-  Q --> W[Eval Worker]
+  API --> DB[(SQLite)]
+  API -->|start run| W[Async Eval Runner]
   W --> AD[Provider Adapters]
-  AD --> P1[Anthropic]
-  AD --> P2[OpenAI]
-  AD --> P3[Google]
+  AD --> P1[Claude Code CLI\nClaude Pro]
+  AD --> P2[Codex CLI\nChatGPT Go]
+  AD --> P3[Gemini API\nfree tier]
+  AD --> P4[Manual paste]
   W --> SB[Docker Sandbox]
   W --> J[Judge Service]
   J --> AD
@@ -308,10 +340,10 @@ flowchart LR
 ### 7.1 Data model
 | Table | Key fields |
 |---|---|
-| `model` | id, provider, model_id, display_name, version, context_window, price_in, price_out, enabled |
+| `model` | id, provider, access_mode, model_id, display_name, version, context_window, price_in, price_out, enabled |
 | `task` | id, category, tier, title, prompt_template, fixtures, expected, checker_types, rubric, version, content_hash |
-| `run` | id, status, suite_version, params_json, model_ids, judge_model_ids, budget_usd, spent_usd, started_at, finished_at |
-| `result` | id, run_id, model_id, task_id, attempt, response, input_tokens, output_tokens, reasoning_tokens, cached_tokens, tokens_estimated, cost_usd, latency_ms, checks_json, judge_scores_json, score, rationale, status, needs_review |
+| `run` | id, status, suite_version, params_json, model_ids, judge_model_ids, call_cap, calls_made, api_equiv_cost_usd, started_at, finished_at |
+| `result` | id, run_id, model_id, task_id, attempt, response, input_tokens, output_tokens, reasoning_tokens, cached_tokens, overhead_tokens, tokens_estimated, api_equiv_cost_usd, latency_ms, checks_json, judge_scores_json, score, rationale, status, needs_review |
 | `defect` | id, result_id, model_id, task_id, category, tier, type, severity, title, expected, actual, evidence, source, status |
 | `profile` | id, name, weights_json, must_have, tier_mix_json, max_cost_per_task, max_p95_latency_ms |
 
@@ -324,7 +356,8 @@ flowchart LR
 | GET | `/api/models/{id}/defects?severity=&type=&tier=&category=` | Defects for a model |
 | GET | `/api/models/{id}/results?task_id=` | Task drill-down |
 | GET | `/api/compare?model_ids=&run_id=` | Side-by-side comparison |
-| POST | `/api/runs` | Start a run (models, categories, tiers, repeats, budget) |
+| POST | `/api/runs` | Start or resume a run (models, categories, tiers, repeats, call cap) |
+| POST | `/api/results/{id}/manual` | Submit a pasted response for a manual-mode task |
 | GET | `/api/runs/{id}` | Run status and progress |
 | PATCH | `/api/defects/{id}` | Reviewer updates status or severity |
 | POST | `/api/fit` | Fit scores and verdicts for a profile |
@@ -364,7 +397,7 @@ The OpenAPI schema generated by FastAPI is the contract source. Pact tests verif
 | E2E | Leaderboard → model → defects → fit journey | Playwright |
 | Accessibility | Main pages | axe-core |
 | Security | Secret scanning, dependency audit | gitleaks, pip-audit, npm audit |
-| Live smoke (nightly) | 1 task per category × tier per model, with a budget cap | GitHub Actions |
+| Live smoke (manual, local) | 1 task per category per model, run by the owner on request | `make smoke` on the owner's computer |
 
 **Traceability rule:** every AC-xx has at least one test whose name contains its ID (e.g., `test_AC16_cost_formula`). CI fails if any AC has no test.
 
@@ -387,7 +420,8 @@ The OpenAPI schema generated by FastAPI is the contract source. Pact tests verif
 ### 9.3 The agent MUST STOP and ask for approval before
 - Changing `SPEC.md`, any acceptance criterion, or `constitution.md`. It proposes the change in the PR description instead.
 - Adding a dependency that isn't in §6, or changing a major version.
-- Making **any live LLM API call**, or any call that spends money.
+- Making **any live model call** (CLI, Gemini API or otherwise). Live calls use the owner's subscription quota, so only the owner starts them.
+- Adding any paid service, paid API key or cloud hosting.
 - Running destructive DB migrations (drop or rename a column or table).
 - Touching secrets, `.env` files, CI workflows or deployment config.
 - Merging to `main`, force-pushing, or deleting branches.
@@ -400,7 +434,7 @@ The OpenAPI schema generated by FastAPI is the contract source. Pact tests verif
 | **G1 Spec** | Before any code | Spec owner | Approved `SPEC.md` v1.0 |
 | **G2 Plan** | After `plan.md` and `tasks.md` are drafted | Spec owner + tech reviewer | Approved plan and task list |
 | **G3 Milestone PR** | End of each milestone (§10) | Reviewer | Merged PR, demo of the milestone's ACs |
-| **G4 Live run** | Before the first live eval | Spec owner | Budget cap and model list confirmed |
+| **G4 Live run** | Before the first live eval | Spec owner | Call cap, model list and CLI sign-ins confirmed |
 | **G5 Release** | After M7 | Spec owner | All ACs green; v1 tag |
 
 ### 9.5 Definition of Done (per task)
@@ -420,7 +454,7 @@ Needed from you: <decision / approval / info>
 ```
 
 ### 9.7 Guardrails
-- Budget: live-run cap per run (default $5) and per day (default $20), enforced in code (AC-07).
+- Zero cost: paid API keys rejected at startup (AC-07b); call cap per run (default 50), enforced in code (AC-07).
 - Command allowlist for the agent: `git` (no push to main), `pytest`, `npm`/`pnpm` scripts, `ruff`, `mypy`, `docker compose`, `alembic upgrade` (non-destructive).
 - Branch protection on `main`: PR plus green CI plus 1 human approval required.
 
@@ -430,20 +464,27 @@ Needed from you: <decision / approval / info>
 
 | Milestone | Tasks | Covers |
 |---|---|---|
-| **M0 Scaffold** | T-01 Repo, tooling, pre-commit, CI skeleton · T-02 Docker Compose (API, DB, Redis, UI) · T-03 AC traceability check in CI | NFR |
-| **M1 Registry & adapters** | T-04 `models.yaml` loader + validation · T-05 Adapter interface + 3 providers with token capture · T-06 Recorded fixtures | AC-01–03, AC-15, AC-17 |
-| **M2 Suite & runner** | T-07 Task schema + hashing · T-08 Seed 90 tasks + golden set · T-09 arq worker, retries, resume · T-10 Budget cap · T-11 Docker sandbox | AC-04–09 |
+| **M0 Scaffold** | T-01 Repo, tooling, pre-commit, CI skeleton · T-02 Docker Compose / `make dev` (API, SQLite, UI) · T-03 AC traceability check in CI | NFR |
+| **M1 Registry & adapters** | T-04 `models.yaml` loader + validation + paid-key guard · T-05 Adapter interface + Claude Code CLI, Codex CLI, Gemini free API and manual adapters with token capture · T-06 Recorded fixtures | AC-01–03, AC-07b, AC-15, AC-17, AC-17b |
+| **M2 Suite & runner** | T-07 Task schema + hashing · T-08 Seed 36 tasks + golden set · T-09 Async runner, retries, quota pause and resume · T-10 Call cap · T-11 Docker sandbox | AC-04–09, AC-06b |
 | **M3 Scoring & defects** | T-12 Automated checkers · T-13 Dual judge + rubric + no self-judging · T-14 Defect classifier + taxonomy · T-15 Review queue + false-positive handling · T-16 Judge calibration test | AC-10–14, AC-19–21 |
 | **M4 Tokens & cost** | T-17 Cost calculator · T-18 Per-tier aggregates, p50/p95 | AC-16, AC-18 |
 | **M5 UI** | T-19 Leaderboard · T-20 Model detail (scores, tokens, defects, drill-down) · T-21 Compare · T-22 Pact contracts | AC-22–25 |
 | **M6 Use-case fit** | T-23 Profiles + templates · T-24 Fit engine + verdict rules · T-25 Fit UI with reasons | AC-26–29 |
-| **M7 Hardening** | T-26 Export · T-27 Run history and diff · T-28 Accessibility + secret-scan · T-29 Nightly live smoke job | AC-30–33 |
+| **M7 Hardening** | T-26 Export · T-27 Run history and diff · T-28 Accessibility + secret-scan · T-29 Local `make smoke` live check | AC-30–33 |
 
 ---
 
-## 11. Open Questions
-- `[NEEDS CLARIFICATION]` Which exact models and versions go into the first run, and what is the total budget for v1 evaluation?
-- `[NEEDS CLARIFICATION]` Are the 6 categories in §3.2 right for your target users, or should a category be swapped (e.g., "API test generation" or "Bug report triage")?
-- `[NEEDS CLARIFICATION]` Who labels the human golden set, and how many items (suggested: 60, 10 per category)?
-- `[NEEDS CLARIFICATION]` Is the app internal only, or does it need login (SSO) in v1?
-- `[NEEDS CLARIFICATION]` Should users be able to upload their **own** tasks (from their app under test) and have them evaluated? This is a strong v2 candidate.
+## 11. Decisions and Open Questions
+
+### Resolved at G1 (2026-10-10)
+| # | Question | Decision |
+|---|---|---|
+| D-1 | Providers for the first run | Anthropic, OpenAI, Google |
+| D-2 | Budget | **$0 extra.** Claude Pro + ChatGPT Go subscriptions via official CLIs, Gemini free API tier (§3.4) |
+| D-3 | Categories | Keep all 6 from §3.2 |
+| D-4 | Login and user uploads | No login, no uploads in v1 |
+
+### Still open
+- `[NEEDS CLARIFICATION]` Who labels the human golden set, and how many items (suggested for v1: 18, 3 per category)?
+- `[NEEDS CLARIFICATION]` Exact model per provider: which Claude model to select in Claude Code, which GPT model Codex uses on the Go plan, and which Gemini Flash model is free in AI Studio at setup time. To be confirmed at G4.

@@ -23,9 +23,22 @@ Constitution → Spec → Plan → Tasks → Implement → Verify
 
 | Gate | Status |
 |---|---|
-| G1 Spec approval | ⏳ In review (SPEC.md v0.1) |
+| G1 Spec approval | ⏳ In review (SPEC.md v0.2: zero-cost access model) |
 | G2 Plan approval | Not started |
 | G3–G5 | Not started |
+
+## Zero-cost by design
+
+v1 runs at **$0 extra cost**. Models are reached through the owner's existing subscriptions and free tiers, never paid API keys:
+
+| Provider | Access |
+|---|---|
+| Anthropic | Claude Code CLI (headless), signed in with Claude Pro |
+| OpenAI | Codex CLI (`exec --json`), signed in with ChatGPT Go |
+| Google | Gemini API free tier (Flash models) |
+| Fallback | Manual paste from any chat app |
+
+Live evaluations run locally on the owner's computer. CI uses recorded fixtures only. See SPEC.md §3.4.
 
 ## Repository layout
 
@@ -42,7 +55,7 @@ tests/           unit, integration, contract, e2e
 
 ## Tech stack
 
-Python 3.12 · FastAPI · PostgreSQL · Redis/arq · Docker sandbox · Next.js + TypeScript · Tailwind · Recharts · pytest · Pact · Playwright · GitHub Actions
+Python 3.12 · FastAPI · SQLite · asyncio runner · Docker sandbox · Next.js + TypeScript · Tailwind · Recharts · pytest · Pact · Playwright · GitHub Actions
 
 ## Owner
 

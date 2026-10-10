@@ -1,25 +1,29 @@
-# Copy to config/models.yaml and fill in current model IDs and prices (per 1M tokens).
-# See SPEC.md FR-01. API keys go in environment variables, never in this file.
+# Copy to config/models.yaml and fill in at setup time (Gate G4). See SPEC.md FR-01 and §3.4.
+# Prices are PUBLIC API list prices per 1M tokens, used only to display "API-equivalent cost".
+# Nothing is billed: paid API keys are rejected at startup.
 models:
-  - key: anthropic-flagship
+  - key: claude-pro
     provider: anthropic
-    model_id: "<current-model-id>"
+    access_mode: claude_code_cli     # signed in with Claude Pro
+    model_id: "<model selected in Claude Code>"
     display_name: "<Display Name>"
     context_window: 200000
     price_input_per_mtok: 0.00
     price_output_per_mtok: 0.00
     enabled: true
-  - key: openai-flagship
+  - key: gpt-go
     provider: openai
-    model_id: "<current-model-id>"
+    access_mode: codex_cli           # signed in with ChatGPT Go
+    model_id: "<model Codex uses on the Go plan>"
     display_name: "<Display Name>"
     context_window: 0
     price_input_per_mtok: 0.00
     price_output_per_mtok: 0.00
     enabled: true
-  - key: google-flagship
+  - key: gemini-flash-free
     provider: google
-    model_id: "<current-model-id>"
+    access_mode: gemini_free_api     # free-tier key in GEMINI_API_KEY
+    model_id: "<free Flash model shown in AI Studio>"
     display_name: "<Display Name>"
     context_window: 0
     price_input_per_mtok: 0.00
