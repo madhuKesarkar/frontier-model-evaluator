@@ -62,7 +62,7 @@ Rules:
 - **BE-R7 Quota pause:** `quota_exhausted` marks that model's remaining Results `paused_quota` and creates no defect. Other models continue. **Resume** continues only unfinished Results; finished Results are never repeated.
 - **BE-R8 One active run:** starting a run while another is `running` is refused.
 - **BE-R9 Concurrency:** at most one in-flight call per provider, to respect quotas.
-- **BE-R10 Sandbox:** generated code runs in a Docker container with no network, a non-root user, and CPU, memory and time limits (default 10 s, 512 MB). A limit breach kills the container, and the Result's code checks fail.
+- **BE-R10 Sandbox:** generated code runs in a Docker container with no network, a non-root user, and CPU, memory and time limits (10 s, 512 MB; D-10). A limit breach kills the container, and the Result's code checks fail.
 
 ## 5. Scoring
 | Score | Label | Rubric |
@@ -148,4 +148,4 @@ Our acceptance criteria for a probabilistic system state the cases, the repetiti
 - **BE-AC-23** Given any log line, API response or committed file, when secret-scanned, then no API key is found.
 
 ## 12. Open Questions
-- BE-OQ-1 Default sandbox limits (10 s, 512 MB): acceptable?
+None.

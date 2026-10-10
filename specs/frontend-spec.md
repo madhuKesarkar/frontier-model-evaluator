@@ -60,7 +60,7 @@ Every screen defines three states: **loading** (a skeleton or spinner, with cont
 
 ### S5 Runs
 - **New run form:** models (only enabled models are selectable), categories, tiers, repeats (1–3), and call cap (default 50). A **preflight** panel shows whether each access mode is ready (for example "Codex CLI: not signed in"). Models whose access mode isn't ready are disabled, with the reason shown.
-- **Progress view:** each model shows done / total, status (`pending`, `running`, `paused_quota`, `done`, `error`), calls used against the cap, and the API-equivalent cost so far. Buttons: **Resume** (for paused runs) and **Cancel**.
+- **Progress view** (refreshes every 3 s while the run is active, D-11): each model shows done / total, status (`pending`, `running`, `paused_quota`, `done`, `error`), calls used against the cap, and the API-equivalent cost so far. Buttons: **Resume** (for paused runs) and **Cancel**.
 - **Manual queue:** for `manual` access mode tasks, show the prompt with a **Copy** button, a textarea for the reply, and **Submit**. A submitted task leaves the queue and is scored.
 - Only one run may be active at a time. Starting a second shows the backend's message and a link to the active run.
 

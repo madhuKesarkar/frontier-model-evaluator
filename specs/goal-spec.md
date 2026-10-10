@@ -125,6 +125,8 @@ v1 is a single-user tool run by the owner on her own computer.
 | D-7 | 2026-10-10 | No fixed v1 date; work phase by phase | goal, plan |
 | D-8 | 2026-10-10 | Visual style: clean neutral palette, system font, one accent colour. The agent proposes design tokens for review. | frontend |
 | D-9 | 2026-10-10 | Minimum supported width 1024 px (desktop-first; phone layout out of scope) | frontend |
+| D-10 | 2026-10-10 | Sandbox limits: 10 s run time and 512 MB memory per execution | backend |
+| D-11 | 2026-10-10 | Run progress via polling `GET /runs/{id}` every 3 s while a run is active; no server-sent events in v1 | frontend, API |
 
 ### Open questions (resolve one by one before the plan is approved)
 - OQ-2 `[NEEDS CLARIFICATION]` Exact model per provider, confirmed at the first live run (G4): which Claude model in Claude Code, which GPT model Codex uses on Go, and which free Gemini Flash model.

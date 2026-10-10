@@ -114,4 +114,4 @@
 - **API-AC-05** Given `GET /export?view=leaderboard&format=csv`, when compared with `GET /leaderboard` for the same run and filters, then the values are identical.
 
 ## 5. Open Questions
-- API-OQ-1 Should the frontend poll `GET /runs/{id}` (proposed: every 3 s while a run is active), or should we add server-sent events? Polling is simpler and enough for v1.
+None. Progress is polled every 3 s (D-11).
