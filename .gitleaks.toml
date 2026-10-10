@@ -1,0 +1,12 @@
+# Secret scanning. Extends gitleaks' built-in rules (API keys for Anthropic, OpenAI, Google, etc.).
+title = "frontier-model-evaluator"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Template files contain placeholders, not secrets"
+paths = [
+  '''config/models\.example\.yaml''',
+  '''\.env\.example''',
+]

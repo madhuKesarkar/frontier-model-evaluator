@@ -1,6 +1,6 @@
 # Implementation Plan — Frontier Model Evaluator
 
-> Status: **DRAFT — not approved.** No implementation starts until the four specs are approved (G1) and this plan is reviewed and approved (G2).
+> Status: **APPROVED (G2, 2026-10-10).** Specs approved at G1 (PR #1, PR #2). Changes to phases or done-when checks need architect approval.
 > Strategy: **local-first, live-last.** Everything is built and tested against recorded fixtures. Live model calls come only in Phase 7, started by the architect.
 
 ## 1. How we work (control surfaces)
@@ -34,7 +34,7 @@ Deferred (post-MVP, goal-spec §5): paid-API modes, user-uploaded tasks, login, 
 Each phase is broken into tasks of about one reviewable diff each, written into this section at the start of that phase (in plan mode) and approved before coding.
 
 ### Phase 0 tasks (proposed)
-- 0.1 Repo tooling: pre-commit, ruff, mypy, ESLint, Prettier, gitleaks config
+- 0.1 Repo tooling: pre-commit, ruff, mypy, Prettier, gitleaks config (ESLint config moves to 0.3, since it needs `frontend/package.json`)
 - 0.2 Backend skeleton: FastAPI app, `/api/v1/health`, pytest setup, one health test
 - 0.3 Frontend skeleton: Vite React TS, Tailwind, Vitest, placeholder page that calls `/health`
 - 0.4 Makefile: `dev`, `test`, `lint`, `ac-check` (the script scans test names for AC IDs listed in the specs)
@@ -70,4 +70,7 @@ BE-AC-21/22 also get a fixture-based unit test of the *calculation* (agreement r
 | Date | Phase/task | Result | Evidence |
 |---|---|---|---|
 | 2026-10-09 | Repo created; SPEC.md v0.1 | done | commit 420dc49 |
-| 2026-10-10 | SPEC v0.2 zero-cost model; restructured into four specs (v0.3) | awaiting G1 | PR #1 |
+| 2026-10-10 | SPEC v0.2 zero-cost model; restructured into four specs (v0.3) | G1 approved | PR #1 |
+| 2026-10-10 | Decisions D-6..D-11 recorded | merged | PR #2 |
+| 2026-10-10 | G2 plan approved by architect | approved | — |
+| 2026-10-10 | 0.1 Repo tooling | in review | pre-commit hooks pass; gitleaks finds no leaks in history and catches a planted key; ruff flags planted S105/S602/F401 |

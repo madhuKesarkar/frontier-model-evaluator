@@ -1,0 +1,21 @@
+# Python lint/format rules for backend/. See CLAUDE.md "Checks".
+target-version = "py312"
+line-length = 100
+extend-exclude = ["frontend", "node_modules", ".venv"]
+
+[lint]
+select = [
+  "E", "W",  # pycodestyle
+  "F",       # pyflakes
+  "I",       # import order
+  "B",       # bugbear (likely bugs)
+  "UP",      # modern syntax
+  "S",       # bandit security checks
+  "SIM",     # simplifications
+]
+
+[lint.per-file-ignores]
+"**/tests/**" = ["S101"]  # assert is how pytest works
+
+[format]
+quote-style = "double"
