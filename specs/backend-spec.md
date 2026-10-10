@@ -62,7 +62,7 @@ Rules:
 - **BE-R7 Quota pause:** `quota_exhausted` marks that model's remaining Results `paused_quota` and creates no defect. Other models continue. **Resume** continues only unfinished Results; finished Results are never repeated.
 - **BE-R8 One active run:** starting a run while another is `running` is refused.
 - **BE-R9 Concurrency:** at most one in-flight call per provider, to respect quotas.
-- **BE-R10 Sandbox:** generated code runs in a Docker container with no network, a non-root user, and CPU, memory and time limits (default 10 s, 512 MB). A limit breach kills the container, and the Result's code checks fail.
+- **BE-R10 Sandbox:** generated code runs in a Docker container with no network, a non-root user, and CPU, memory and time limits (10 s, 512 MB; D-10). A limit breach kills the container, and the Result's code checks fail.
 
 ## 5. Scoring
 | Score | Label | Rubric |
@@ -83,8 +83,8 @@ Rules:
 
 ## 6. Evaluating the Evaluator
 Our acceptance criteria for a probabilistic system state the cases, the repetitions and the decision rule.
-- **Golden set:** owner-labelled Results (OQ-1; proposed 18). Decision rule: the judges agree within ±1 on ≥ 80% (SM-3).
-- **Seeded defects:** deliberately flawed responses (proposed 12). Decision rule: ≥ 80% are scored ≤ 2 (SM-4). This is the mutation-style check of the judge.
+- **Golden set:** 18 owner-labelled Results, 3 per category (D-6). Decision rule: the judges agree within ±1 on ≥ 80% (SM-3).
+- **Seeded defects:** 12 deliberately flawed responses, 2 per category (D-6). Decision rule: ≥ 80% are scored ≤ 2 (SM-4). This is the mutation-style check of the judge.
 - **Reproducibility:** the same suite, models and parameters run twice. Decision rule: each category score changes by ≤ 0.5 (SM-2).
 - **Consistency:** when repeats > 1 and a task's scores across repeats differ by ≥ 2, create an `INCONSISTENCY` defect.
 
@@ -148,5 +148,4 @@ Our acceptance criteria for a probabilistic system state the cases, the repetiti
 - **BE-AC-23** Given any log line, API response or committed file, when secret-scanned, then no API key is found.
 
 ## 12. Open Questions
-- OQ-1 Golden set owner and size; seeded-defect count.
-- BE-OQ-1 Default sandbox limits (10 s, 512 MB): acceptable?
+None.

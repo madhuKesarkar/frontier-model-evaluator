@@ -16,10 +16,10 @@ The frontend talks only to the local backend at `http://localhost:8000/api/v1`. 
 
 ## 2. Visual Design
 <!-- Fonts, colours, layout preferences. -->
-- `[NEEDS CLARIFICATION]` (OQ-4) Font and palette. Placeholder: a system sans-serif font, neutral background and one accent colour.
+- Clean neutral palette, system sans-serif font, one accent colour (D-8). Exact design tokens are proposed in Phase 4 and reviewed before use.
 - Scores use one consistent colour scale from 1 (red) to 5 (green), always shown with the number. Colour never carries meaning on its own.
 - Defect severity badges: S1 Critical, S2 Major, S3 Minor, S4 Cosmetic, always with text.
-- Layout: desktop-first. Minimum supported width `[NEEDS CLARIFICATION]` (proposed 1024 px; a phone layout is out of scope).
+- Layout: desktop-first. Minimum supported width 1024 px (D-9); a phone layout is out of scope.
 
 ## 3. Navigation
 A top navigation bar shows: **Leaderboard** (home) · **Compare** · **Fit for my app** · **Runs** · **Review queue** (with a count badge) · **History**.
@@ -60,7 +60,7 @@ Every screen defines three states: **loading** (a skeleton or spinner, with cont
 
 ### S5 Runs
 - **New run form:** models (only enabled models are selectable), categories, tiers, repeats (1–3), and call cap (default 50). A **preflight** panel shows whether each access mode is ready (for example "Codex CLI: not signed in"). Models whose access mode isn't ready are disabled, with the reason shown.
-- **Progress view:** each model shows done / total, status (`pending`, `running`, `paused_quota`, `done`, `error`), calls used against the cap, and the API-equivalent cost so far. Buttons: **Resume** (for paused runs) and **Cancel**.
+- **Progress view** (refreshes every 3 s while the run is active, D-11): each model shows done / total, status (`pending`, `running`, `paused_quota`, `done`, `error`), calls used against the cap, and the API-equivalent cost so far. Buttons: **Resume** (for paused runs) and **Cancel**.
 - **Manual queue:** for `manual` access mode tasks, show the prompt with a **Copy** button, a textarea for the reply, and **Submit**. A submitted task leaves the queue and is scored.
 - Only one run may be active at a time. Starting a second shows the backend's message and a link to the active run.
 
@@ -100,5 +100,4 @@ Format: Given / When / Then. Each criterion has at least one test (see claude-pl
 - **FE-AC-16** Given any defect in S2, when expanded, then it shows the prompt excerpt, response excerpt, expected vs actual, severity, source and status, and links to the full result (SM-6).
 
 ## 7. Open Questions
-- OQ-4 Visual preferences and sketches (see §2).
-- FE-OQ-1 Minimum supported width: is 1024 px acceptable?
+None.
