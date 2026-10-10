@@ -1,6 +1,7 @@
 # Python lint/format rules for backend/. See CLAUDE.md "Checks".
 target-version = "py312"
 line-length = 100
+src = ["backend"]  # so `app` is recognised as first-party
 extend-exclude = ["frontend", "node_modules", ".venv"]
 
 [lint]
