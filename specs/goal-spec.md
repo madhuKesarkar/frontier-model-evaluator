@@ -81,7 +81,7 @@ v1 is a single-user tool run by the owner on her own computer.
 - **Budget: $0 extra.** Models are reached only through the owner's Claude Pro and ChatGPT Go subscriptions (via their official command-line tools), Google's free Gemini API tier, or manual paste. No paid API keys. See backend-spec §3.
 - **Platform:** a local web application on the owner's Mac. v1 has no cloud hosting.
 - **Team:** 1 person (architect), plus a coding agent (contractor).
-- **Timeline:** `[NEEDS CLARIFICATION]` target date for v1.
+- **Timeline:** no fixed date; delivered phase by phase (D-7).
 - **Required technology:** Python backend (the evaluation libraries are Python), React frontend, SQLite storage. Exact choices are proposed in the frontend and backend specs.
 - **Quotas:** subscription and free-tier limits are the binding resource. The suite size and repeat count are sized so that a full run fits within them.
 - **Fairness:** results describe each model *as reached through its access mode*: Claude via Claude Code on Pro, GPT via Codex on Go, and Gemini Flash on the free tier. They are not a comparison of three flagship APIs, and the UI must say so.
@@ -121,9 +121,10 @@ v1 is a single-user tool run by the owner on her own computer.
 | D-3 | 2026-10-10 | Keep all 6 categories | goal, backend |
 | D-4 | 2026-10-10 | No login and no user-uploaded tasks in v1 | goal, frontend, API |
 | D-5 | 2026-10-10 | Follow the course's four-spec structure. SPEC.md v0.2 is retired into these four documents. | repo |
+| D-6 | 2026-10-10 | Golden set: the owner labels 18 results (3 per category), plus 12 seeded defects (2 per category) | goal, backend |
+| D-7 | 2026-10-10 | No fixed v1 date; work phase by phase | goal, plan |
+| D-8 | 2026-10-10 | Visual style: clean neutral palette, system font, one accent colour. The agent proposes design tokens for review. | frontend |
+| D-9 | 2026-10-10 | Minimum supported width 1024 px (desktop-first; phone layout out of scope) | frontend |
 
 ### Open questions (resolve one by one before the plan is approved)
-- OQ-1 `[NEEDS CLARIFICATION]` Who labels the golden set, and how many items? Proposed: the owner labels 18 (3 per category), plus 12 seeded defects (2 per category).
 - OQ-2 `[NEEDS CLARIFICATION]` Exact model per provider, confirmed at the first live run (G4): which Claude model in Claude Code, which GPT model Codex uses on Go, and which free Gemini Flash model.
-- OQ-3 `[NEEDS CLARIFICATION]` Target date for v1.
-- OQ-4 `[NEEDS CLARIFICATION]` Visual preferences (font, colour palette) and any hand-drawn sketches of the screens. See frontend-spec §2.

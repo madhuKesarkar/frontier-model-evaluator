@@ -83,8 +83,8 @@ Rules:
 
 ## 6. Evaluating the Evaluator
 Our acceptance criteria for a probabilistic system state the cases, the repetitions and the decision rule.
-- **Golden set:** owner-labelled Results (OQ-1; proposed 18). Decision rule: the judges agree within ±1 on ≥ 80% (SM-3).
-- **Seeded defects:** deliberately flawed responses (proposed 12). Decision rule: ≥ 80% are scored ≤ 2 (SM-4). This is the mutation-style check of the judge.
+- **Golden set:** 18 owner-labelled Results, 3 per category (D-6). Decision rule: the judges agree within ±1 on ≥ 80% (SM-3).
+- **Seeded defects:** 12 deliberately flawed responses, 2 per category (D-6). Decision rule: ≥ 80% are scored ≤ 2 (SM-4). This is the mutation-style check of the judge.
 - **Reproducibility:** the same suite, models and parameters run twice. Decision rule: each category score changes by ≤ 0.5 (SM-2).
 - **Consistency:** when repeats > 1 and a task's scores across repeats differ by ≥ 2, create an `INCONSISTENCY` defect.
 
@@ -148,5 +148,4 @@ Our acceptance criteria for a probabilistic system state the cases, the repetiti
 - **BE-AC-23** Given any log line, API response or committed file, when secret-scanned, then no API key is found.
 
 ## 12. Open Questions
-- OQ-1 Golden set owner and size; seeded-defect count.
 - BE-OQ-1 Default sandbox limits (10 s, 512 MB): acceptable?
