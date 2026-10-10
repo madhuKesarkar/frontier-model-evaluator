@@ -6,6 +6,8 @@ config/models.yaml
 
 # Python
 __pycache__/
+*.egg-info/
+build/
 *.py[cod]
 .venv/
 .pytest_cache/
