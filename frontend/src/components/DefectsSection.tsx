@@ -28,10 +28,13 @@ function FilterSelect(props: {
   options: { value: string; label: string }[];
   onChange: (v: string) => void;
 }) {
+  // Explicit for/id so the accessible name is just the label, not "Tier All".
+  const id = useId();
   return (
-    <label className="flex items-center gap-2 text-sm">
-      {props.label}
+    <div className="flex items-center gap-2 text-sm">
+      <label htmlFor={id}>{props.label}</label>
       <select
+        id={id}
         className={selectClass}
         value={props.value}
         onChange={(e) => props.onChange(e.target.value)}
@@ -43,7 +46,7 @@ function FilterSelect(props: {
           </option>
         ))}
       </select>
-    </label>
+    </div>
   );
 }
 
@@ -53,7 +56,11 @@ function Excerpt({ label, text }: { label: string; text: string | null | undefin
       <dt className="text-xs font-semibold tracking-wide text-slate-600 uppercase">{label}</dt>
       <dd>
         {text ? (
-          <pre className="mt-1 max-h-48 overflow-auto rounded bg-slate-50 p-2 text-xs whitespace-pre-wrap">
+          <pre
+            tabIndex={0}
+            aria-label={label}
+            className="mt-1 max-h-48 overflow-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 rounded bg-slate-50 p-2 text-xs whitespace-pre-wrap"
+          >
             {text}
           </pre>
         ) : (

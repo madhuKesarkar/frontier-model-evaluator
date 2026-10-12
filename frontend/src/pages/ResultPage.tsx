@@ -87,7 +87,11 @@ export function ResultPage() {
           Prompt{" "}
           <span className="text-sm font-normal text-slate-600">(suite v{r.task.version})</span>
         </h2>
-        <pre className="max-h-96 overflow-auto rounded bg-slate-50 p-3 text-xs whitespace-pre-wrap">
+        <pre
+          tabIndex={0}
+          aria-labelledby="prompt-h"
+          className="max-h-96 overflow-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 rounded bg-slate-50 p-3 text-xs whitespace-pre-wrap"
+        >
           {r.task.prompt}
         </pre>
       </section>
@@ -96,7 +100,11 @@ export function ResultPage() {
         <h2 id="response-h" className="text-lg font-semibold">
           Response
         </h2>
-        <pre className="max-h-96 overflow-auto rounded bg-slate-50 p-3 text-xs whitespace-pre-wrap">
+        <pre
+          tabIndex={0}
+          aria-labelledby="response-h"
+          className="max-h-96 overflow-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 rounded bg-slate-50 p-3 text-xs whitespace-pre-wrap"
+        >
           {r.response_text ?? "No response recorded."}
         </pre>
       </section>
