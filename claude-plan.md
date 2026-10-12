@@ -1,70 +1,69 @@
 # Implementation Plan — Frontier Model Evaluator
 
-> Status: **APPROVED (G2, 2026-10-10).** Specs approved at G1 (PR #1, PR #2). Changes to phases or done-when checks need architect approval.
-> Strategy: **local-first, live-last.** Everything is built and tested against recorded fixtures. Live model calls come only in Phase 7, started by the architect.
+> Status: **APPROVED (G2, 2026-10-10); re-scoped to the demo on 2026-10-12 (D-12..D-14).** Changes to phases or done-when checks need architect approval.
+> Strategy: **local-first, live-last, then deploy read-only.** Everything is built and tested against recorded fixtures. Live model calls happen only in Phase 4, started by the architect on her Mac. The public demo serves those results read-only (D-13).
+> Dates: working demo **14 Oct**, course submission **18 Oct**.
 
 ## 1. How we work (control surfaces)
 The coding agent (Claude Code, or Codex later) is a Level 3 autonomous agent: it chooses its own next steps. We bound it with the four control surfaces:
 
 | Surface | Our control |
 |---|---|
-| Prompt | One plan task per request, naming its phase, task ID and governing spec |
+| Prompt | One phase per request, naming its tasks and governing spec |
 | Context | The four specs + `CLAUDE.md` + this plan. Decisions go into the specs, not the chat. |
-| Loop | Plan mode before each phase; checks from §4; the "done when" checks below; architect review of each diff |
-| Graph | A single agent, working sequentially. No parallel workers in v1 (small project; shared files). |
+| Loop | Checks from §4; the "done when" checks below; mutation checks on key tests; architect review of each phase PR |
+| Graph | A single agent, working sequentially. No parallel workers (small project; shared files). |
 
-**Gates:** G1 specs approved → G2 plan approved → G3 each phase's "done when" checks reviewed → G4 first live run (architect only) → G5 v1 release.
+**Gates:** G1 specs ✔ → G2 plan ✔ → G3 each phase PR reviewed and merged → **G4 live run (architect only)** → **G5 deploy approved** → G6 submission.
+**Process (D-14):** one PR per phase; each task is its own commit inside that PR.
 
-## 2. Phases
-| Phase | Work | Done when (observable) |
-|---|---|---|
-| **0 Repo and environment** | Tooling (ruff, mypy, ESLint, pre-commit, gitleaks), `backend/` FastAPI with `GET /api/v1/health`, `frontend/` Vite React placeholder, `Makefile` (`dev`, `test`, `ac-check`), CI on push/PR running lint + tests | Both servers run locally and respond; `make test` passes; CI is green on a real PR; `make ac-check` lists every AC as uncovered |
-| **1 Backend foundation** | Model registry + validation + paid-key guard; SQLite schema + Alembic migration; task schema, hashing and suite validator; preflight endpoint with stubbed checks | BE-AC-01..04 and API-AC-03 pass; deleting the paid-key guard makes BE-AC-03 fail (mutation check) |
-| **2 Evaluation engine (fixtures only)** | Adapter interface + fake and recorded-fixture adapters; runner with retries, quota pause/resume, call cap and one-active-run rule; deterministic checkers; Docker sandbox; judge assignment and combining; scoring; defects; token/cost calculation | BE-AC-05..17 pass on fixtures; a fixture run of 3 models × 6 tasks produces the expected scores and defects; mutation checks on BE-AC-07, 11, 13 |
-| **3 Task suite and golden set** | Author 36 tasks (2 per category × tier) with checkers and rubrics; golden-set (18) and seeded-defect (12) files (D-6) | The suite validator passes (BE-AC-04); **the architect has reviewed every task** and found no confidential data; golden labels are recorded by the architect |
-| **4 Read API + frontend core** | All read endpoints per contract; S1 Leaderboard, S2 Model detail, S3 Compare, S7 History, on a seeded database | API-AC-01/02 contract tests pass for read endpoints; FE-AC-01..06 pass; the architect clicks through the main journey on the seeded DB |
-| **5 Runs, review, fit and export** | Run endpoints + S5 (preflight, progress, manual queue); review endpoints + S6; profiles, templates and fit engine + S4; export | BE-AC-18..20, FE-AC-07..13, 15 and 16, API-AC-05 pass; a fixture run started from the UI completes, pauses on a simulated quota, and resumes |
-| **6 Local hardening** | Accessibility, keyboard navigation, all loading/empty/error states, secret scan, AC traceability gate in CI | FE-AC-14, API-AC-04 and BE-AC-23 pass; `make ac-check` shows **every AC covered**; deferred items are listed explicitly |
-| **7 Live adapters and first live run (G4)** | Real `claude_code_cli`, `codex_cli` and `gemini_free_api` adapters with recorded-fixture tests; `make smoke` (1 task per category per model). **Architect runs it.** Then the full run. | Preflight shows every mode ready; the smoke run's results appear in the UI with reported tokens; the full run completes (possibly across quota windows); exact models (OQ-2) are recorded in the goal spec |
-| **8 Evaluate the evaluator** | Judge calibration (golden set), seeded-defect check, reproducibility run; write `docs/evaluation-report.md`; feed findings back into the specs | SM-2, SM-3 and SM-4 measured and reported (pass or fail, with numbers); any spec changes are recorded as decisions |
+## 2. Phases (demo scope)
+| Phase | Work | Done when (observable) | Target |
+|---|---|---|---|
+| **0 Repo and environment** | ✔ 0.1 tooling · ✔ 0.2 backend skeleton · ✔ 0.3 frontend skeleton · 0.4 Makefile (`dev`, `test`, `lint`, `ac-check`) · 0.5 CI (**workflow file needs approval**) · ESLint upgrade | `make test` passes; CI green on a real PR; `make ac-check` lists demo ACs as uncovered | 12 Oct |
+| **1 Evaluation engine (fixtures only)** | Model registry + paid-key guard; SQLite schema; task schema + hashing + validator; **18 tasks** (1 per category × tier); adapter interface + recorded-fixture adapters; runner (retries, quota stop/resume, call cap, one active run); checkers + Docker sandbox; single cross-provider judge; scoring; defects; tokens/cost; `make eval` CLI | BE-AC-01..11, 13..17, 23 pass on fixtures; a fixture run of 3 models × 18 tasks gives the expected scores and defects; mutation checks on BE-AC-03, 07, 11, 13; **architect reviews the 18 tasks** | 13 Oct |
+| **2 Read API + fit engine** | Demo endpoints (health, models, leaderboard, model detail, defects, results, result, profile-templates, fit); 3 template profiles; read-only mode flag; CORS allow-list | API-AC-01..04 pass for demo endpoints; BE-AC-18..20 pass; read-only mode rejects anything but GET + `POST /fit` | 13 Oct |
+| **3 Frontend: 3 screens** | S1 Leaderboard, S2 Model detail (scores by tier, token panel, defects with evidence, drill-down), S4 Fit (templates); loading/empty/error states; fairness note | FE-AC-01..05, 07, 13, 14, 16 pass; architect clicks through Leaderboard → Model → defect → Fit on the seeded DB | 13 Oct |
+| **4 Live adapters + live run (G4)** | Real `claude_code_cli`, `codex_cli`, `gemini_free_api` adapters (fixture-tested); preflight check; `make smoke` then `make eval`. **Architect runs both on her Mac.** Golden (6) + seeded (6) judge check. | Every mode ready; live results visible locally with reported tokens; SM-3/SM-4 measured with numbers (pass or fail); exact models (OQ-2) recorded in the goal spec | 14 Oct |
+| **5 Deploy read-only demo (G5)** | Results snapshot committed; API on Render free tier (`FME_READ_ONLY=1`); frontend on Netlify (free) with the API URL; CORS = Netlify origin only | Public URL shows the real run; scripted checks (routes load, no localhost URLs, no secrets in bundle, CORS rejects other origins); architect's manual click-through | 14 Oct |
+| **6 Submission pack** | Design-decision walkthrough + interview prep page (course §4.8/§8.12), delivery record (roadmap, changes from plan, architecture, $0 cost), AC→test traceability, abstract draft, YouTube demo script | Pages live at the demo URL; every form field has a value ready for the architect | 15–16 Oct |
 
-Deferred (post-MVP, goal-spec §5): paid-API modes, user-uploaded tasks, login, hosting.
+**Post-MVP** (goal-spec §5): Compare, runs from UI, manual mode, review queue, export, history, custom profiles, two judges, full golden set, larger suite, paid-API modes, login.
 
 ## 3. Task breakdown
-Each phase is broken into tasks of about one reviewable diff each, written into this section at the start of that phase (in plan mode) and approved before coding.
-
-### Phase 0 tasks (proposed)
-- 0.1 Repo tooling: pre-commit, ruff, mypy, Prettier, gitleaks config (ESLint config moves to 0.3, since it needs `frontend/package.json`)
-- 0.2 Backend skeleton: FastAPI app, `/api/v1/health`, pytest setup, one health test
-- 0.3 Frontend skeleton: Vite React TS, Tailwind, Vitest, placeholder page that calls `/health`
-- 0.4 Makefile: `dev`, `test`, `lint`, `ac-check` (the script scans test names for AC IDs listed in the specs)
+### Phase 0 tasks
+- ✔ 0.1 Repo tooling: pre-commit, ruff, mypy, Prettier, gitleaks config (ESLint config moved to 0.3)
+- ✔ 0.2 Backend skeleton: FastAPI app, `/api/v1/health`, pytest setup, health tests
+- ✔ 0.3 Frontend skeleton: Vite React TS, Tailwind, Vitest, placeholder page that calls `/health`
+- 0.4 Makefile: `dev`, `test`, `lint`, `ac-check` (the script scans test names for the AC IDs that are in demo scope)
 - 0.5 CI workflow: lint + test for backend and frontend on push and PR (**needs architect approval**: workflow file)
+- 0.6 Upgrade the deprecated ESLint pin
 
-## 4. Acceptance criteria → test matrix
-Test types: **U** unit · **I** integration (fixture adapters, real DB) · **C** contract · **E** end-to-end (Playwright) · **M** manual / measured.
+Later phases are broken into tasks at the start of each phase and listed in its PR.
+
+## 4. Acceptance criteria → test matrix (demo scope)
+Test types: **U** unit · **I** integration (fixture adapters, real DB) · **C** contract · **E** end-to-end (Playwright) · **M** manual / measured · **—** Post-MVP (not tested in the demo).
 
 | AC | Type | AC | Type | AC | Type |
 |---|---|---|---|---|---|
 | BE-AC-01 | I | BE-AC-11 | U | FE-AC-01 | E |
-| BE-AC-02 | U | BE-AC-12 | U | FE-AC-02 | E |
+| BE-AC-02 | U | BE-AC-12 | — | FE-AC-02 | E |
 | BE-AC-03 | U | BE-AC-13 | U | FE-AC-03 | E |
 | BE-AC-04 | U | BE-AC-14 | U | FE-AC-04 | U (component) |
 | BE-AC-05 | I | BE-AC-15 | I | FE-AC-05 | U (component) |
-| BE-AC-06 | I | BE-AC-16 | U | FE-AC-06 | E |
+| BE-AC-06 | I | BE-AC-16 | U | FE-AC-06 | — |
 | BE-AC-07 | I | BE-AC-17 | U | FE-AC-07 | E |
-| BE-AC-08 | I | BE-AC-18 | U | FE-AC-08 | U (component) |
-| BE-AC-09 | I (Docker) | BE-AC-19 | U | FE-AC-09 | E |
-| BE-AC-10 | I (Docker) | BE-AC-20 | U | FE-AC-10 | E |
-| BE-AC-21 | M (live, Phase 8) | API-AC-01 | C | FE-AC-11 | E |
-| BE-AC-22 | M (live, Phase 8) | API-AC-02 | C | FE-AC-12 | E |
+| BE-AC-08 | I | BE-AC-18 | U | FE-AC-08 | — |
+| BE-AC-09 | I (Docker, architect's Mac) | BE-AC-19 | U | FE-AC-09 | — |
+| BE-AC-10 | I (Docker, architect's Mac) | BE-AC-20 | U | FE-AC-10 | — |
+| BE-AC-21 | M (live, Phase 4) | API-AC-01 | C | FE-AC-11 | — |
+| BE-AC-22 | M (live, Phase 4) | API-AC-02 | C | FE-AC-12 | — |
 | BE-AC-23 | I (CI scan) | API-AC-03 | C | FE-AC-13 | E |
 |  |  | API-AC-04 | I (scan) | FE-AC-14 | E (axe) |
-|  |  | API-AC-05 | I | FE-AC-15 | E |
+|  |  | API-AC-05 | — | FE-AC-15 | — |
 |  |  |  |  | FE-AC-16 | E |
 
-BE-AC-21/22 also get a fixture-based unit test of the *calculation* (agreement rate, catch rate). The pass/fail measurement itself needs live judges.
-
-**Architect action:** review this table. Each row should state the evidence you will accept.
+Demo scope: **35 ACs** tested; 9 Post-MVP (BE-AC-12, API-AC-05, FE-AC-06, 08–12, 15). BE-AC-21/22 also get a fixture-based unit test of the *calculation* (agreement rate, catch rate). The pass/fail measurement itself needs the live judge.
 
 ## 5. Progress log
 | Date | Phase/task | Result | Evidence |
@@ -75,4 +74,5 @@ BE-AC-21/22 also get a fixture-based unit test of the *calculation* (agreement r
 | 2026-10-10 | G2 plan approved by architect | approved | — |
 | 2026-10-10 | 0.1 Repo tooling | merged (PR #3) | pre-commit hooks pass; gitleaks finds no leaks in history and catches a planted key; ruff flags planted S105/S602/F401 |
 | 2026-10-10 | 0.2 Backend skeleton | merged (PR #4); verified on architect's Mac (Python 3.12.4, 2 passed) | ruff/mypy(strict)/pytest pass; health test fails when endpoint broken; live server returns 200 {"status":"ok"} on 127.0.0.1:8000 |
-| 2026-10-10 | 0.3 Frontend skeleton | in review | lint/typecheck/3 tests/build pass; 2 mutation checks caught (1 after strengthening a weak test); headless Chromium shows connected + not-reachable states via Vite proxy |
+| 2026-10-10 | 0.3 Frontend skeleton | merged (PR #5) | lint/typecheck/3 tests/build pass; 2 mutation checks caught (1 after strengthening a weak test); headless Chromium shows connected + not-reachable states via Vite proxy |
+| 2026-10-12 | Re-scoped to demo (D-12..D-15) for 14 Oct demo / 18 Oct submission | in review | this PR |

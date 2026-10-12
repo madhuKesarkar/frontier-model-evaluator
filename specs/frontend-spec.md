@@ -1,7 +1,11 @@
 # Frontend Spec — Frontier Model Evaluator
 
 > Defines the screens, actions and visible states that support the journeys in goal-spec.md.
-> Status: **DRAFT v0.3** — awaiting review. Message shapes are defined in api-contract-spec.md.
+> Status: **v1.0 — demo scope (D-12).** Message shapes are defined in api-contract-spec.md.
+>
+> **Demo screens:** S1 Leaderboard, S2 Model detail, S4 Fit (templates only). **Post-MVP:** S3 Compare, S5 Runs, S6 Review queue, S7 History, export buttons, custom/saved profiles. Their sections below are kept as the Post-MVP design.
+>
+> **Read-only demo (D-13):** the deployed site has no actions that start runs or change data. Results come from the owner's real run.
 
 ## 1. Technology (proposed — review before accepting)
 <!-- Framework and libraries, with the reason for each and the simpler alternative considered. -->
@@ -22,7 +26,7 @@ The frontend talks only to the local backend at `http://localhost:8000/api/v1`. 
 - Layout: desktop-first. Minimum supported width 1024 px (D-9); a phone layout is out of scope.
 
 ## 3. Navigation
-A top navigation bar shows: **Leaderboard** (home) · **Compare** · **Fit for my app** · **Runs** · **Review queue** (with a count badge) · **History**.
+A top navigation bar shows: **Leaderboard** (home) · **Fit for my app**. *(Post-MVP adds Compare, Runs, Review queue, History.)*
 
 A persistent **fairness note** appears on the Leaderboard, Model detail and Compare screens: *"Models are compared as reached through each access mode (Claude via Claude Code on Pro, GPT via Codex on Go, Gemini Flash on the free tier), not as flagship paid APIs. Token counts use different tokenizers; compare API-equivalent cost instead."*
 
@@ -36,7 +40,7 @@ Every screen defines three states: **loading** (a skeleton or spinner, with cont
 - Every column is sortable. Clicking a row opens **S2** for that model.
 - A **"Check fit for my app"** button opens **S4**.
 - **Export** button (CSV or JSON) for the current view.
-- Empty: "No completed runs yet." plus a **Start a run** button that opens S5.
+- Empty: "No results loaded yet. Runs are started from the command line (`make eval`); see the README."
 
 ### S2 Model detail
 - **Header:** display name, provider, access mode, model ID, last run date, overall score.
@@ -45,32 +49,32 @@ Every screen defines three states: **loading** (a skeleton or spinner, with cont
 - **Defects:** a list filterable by type, severity, category, tier and status. Expanding a defect shows the prompt, a response excerpt, expected vs actual, severity, source and status.
 - **Task drill-down:** a table of results. Opening a result shows the full prompt, full response, each checker's outcome, each judge's score and rationale, tokens, cost and latency.
 - **Export** of the defects list.
-- Empty (the model exists but hasn't been run): "This model hasn't been evaluated yet." plus **Start a run**.
+- Empty (the model exists but hasn't been run): "This model hasn't been evaluated yet."
 
-### S3 Compare
+### S3 Compare *(Post-MVP)*
 - Select 2–4 models (selecting a 5th is disabled, with a hint).
 - Side-by-side category scores, API-equivalent cost per tier, and defect counts by type.
 - Empty (fewer than 2 selected): "Select at least two models."
 
-### S4 Fit for my app
+### S4 Fit for my app *(demo: templates only; custom/saved profiles are Post-MVP)*
 - Choose a **template** (Test-case generation tool, Customer support chatbot, Code assistant) or **Custom**.
 - Profile form: weight 0–5 per category, must-have categories, tier mix as three percentages that must total 100, optional maximum API-equivalent cost per task, optional maximum p95 latency. **Save profile** as a named, reusable profile.
 - Validation is shown next to the field: a tier mix that doesn't total 100, a negative limit, or all weights set to 0.
 - **Results:** one card per model showing the verdict (Recommended / Conditional / Not recommended), the fit score, top strengths, top risks, and the defects or limits that caused the verdict, each linking to S2.
 
-### S5 Runs
+### S5 Runs *(Post-MVP)*
 - **New run form:** models (only enabled models are selectable), categories, tiers, repeats (1–3), and call cap (default 50). A **preflight** panel shows whether each access mode is ready (for example "Codex CLI: not signed in"). Models whose access mode isn't ready are disabled, with the reason shown.
 - **Progress view** (refreshes every 3 s while the run is active, D-11): each model shows done / total, status (`pending`, `running`, `paused_quota`, `done`, `error`), calls used against the cap, and the API-equivalent cost so far. Buttons: **Resume** (for paused runs) and **Cancel**.
 - **Manual queue:** for `manual` access mode tasks, show the prompt with a **Copy** button, a textarea for the reply, and **Submit**. A submitted task leaves the queue and is scored.
 - Only one run may be active at a time. Starting a second shows the backend's message and a link to the active run.
 
-### S6 Review queue
+### S6 Review queue *(Post-MVP)*
 - Lists results flagged `needs_review` (judges disagree by more than 1, or a single-judge result) and defects with status `open`.
 - For a result: set the final score from 1 to 5, with an optional note.
 - For a defect: Confirm, mark False positive, or change severity.
 - Empty: "Nothing to review."
 
-### S7 History
+### S7 History *(Post-MVP)*
 - A table of past runs: date, models, suite version, status, calls used, API-equivalent cost.
 - Select two runs to see per-category score changes per model, with each run's suite version.
 
@@ -82,6 +86,8 @@ Every screen defines three states: **loading** (a skeleton or spinner, with cont
 
 ## 6. Acceptance Criteria
 Format: Given / When / Then. Each criterion has at least one test (see claude-plan.md §4).
+
+**Demo scope:** FE-AC-01, 02, 03, 04, 05, 07, 13, 14, 16. **Post-MVP (not tested in the demo):** FE-AC-06, 08, 09, 10, 11, 12, 15.
 - **FE-AC-01** Given a completed run with three models, when the user opens the Leaderboard, then each model shows a 1–5 score for each of the six categories.
 - **FE-AC-02** Given the Leaderboard, when the user clicks a model row, then S2 opens for that model within 2 seconds on the seeded local database.
 - **FE-AC-03** Given S2's defects list, when the user filters by severity S1 and tier Complex, then only matching defects are shown and the count updates.

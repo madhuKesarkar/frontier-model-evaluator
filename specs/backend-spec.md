@@ -1,7 +1,9 @@
 # Backend Spec — Frontier Model Evaluator
 
 > Defines the data, rules, evaluation method and operating constraints behind the journeys in goal-spec.md.
-> Status: **DRAFT v0.3** — awaiting review. Exact messages are defined in api-contract-spec.md.
+> Status: **v1.0 — demo scope (D-12).** Exact messages are defined in api-contract-spec.md.
+>
+> **Demo changes:** runs start from the command line (`make eval`), not the API. One judge per result. The `manual` access mode, export and run history are Post-MVP. The API is **read-only** in the deployed demo (D-13).
 
 ## 1. Technology (proposed — review before accepting)
 | Choice | Why | Alternative considered |
@@ -12,7 +14,7 @@
 | Docker (local) | Isolated sandbox for executing generated code | Running code directly on the host: rejected as unsafe |
 | tiktoken | Estimates token counts where none are reported | Character-ratio estimate only |
 
-The backend listens on `127.0.0.1` only. It is not reachable from other machines.
+Locally, the backend listens on `127.0.0.1` only. In the deployed demo (D-13) it runs on Render in **read-only mode** (`FME_READ_ONLY=1`): only GET endpoints and `POST /fit` (a pure calculation) are served, and no adapter or model call is possible.
 
 ## 2. Data Model
 Entities follow the glossary. A Run has many Results; a Result belongs to one Model and one Task, has 0–2 JudgeScores and has 0 or more Defects.
@@ -39,7 +41,7 @@ Each provider is reached through an adapter. All adapters share one interface:
 | `claude_code_cli` | Claude Code headless (`claude -p … --output-format json`) signed in with Claude Pro. Tools disabled; a minimal custom system prompt. | Reported (input, output, cache). Overhead = reported input minus the task prompt's estimated tokens. |
 | `codex_cli` | Codex CLI non-interactive (`codex exec --json`) signed in with ChatGPT Go. Read-only sandbox, no tools. | Reported in JSON events |
 | `gemini_free_api` | Google GenAI SDK with a free-tier key in `GEMINI_API_KEY`. Flash-class models only. | Reported |
-| `manual` | Prompt shown in the UI; the reply is pasted back. | Estimated |
+| `manual` *(Post-MVP)* | Prompt shown in the UI; the reply is pasted back. | Estimated |
 
 Rules:
 - **BE-R1 Paid-key guard:** startup fails with an explanatory message if `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` is set.
@@ -61,6 +63,7 @@ Rules:
 - **BE-R6 Retries:** `transient` and `timeout` errors are retried up to 3 times with exponential backoff. After that, the Result is `error` with a `TIMEOUT_ERROR` defect.
 - **BE-R7 Quota pause:** `quota_exhausted` marks that model's remaining Results `paused_quota` and creates no defect. Other models continue. **Resume** continues only unfinished Results; finished Results are never repeated.
 - **BE-R8 One active run:** starting a run while another is `running` is refused.
+- **BE-R8b Command-line runs (demo):** `make eval` (or `python -m app.eval run`) starts or resumes a run. Re-running after a quota stop continues only unfinished Results.
 - **BE-R9 Concurrency:** at most one in-flight call per provider, to respect quotas.
 - **BE-R10 Sandbox:** generated code runs in a Docker container with no network, a non-root user, and CPU, memory and time limits (10 s, 512 MB; D-10). A limit breach kills the container, and the Result's code checks fail.
 
@@ -74,17 +77,17 @@ Rules:
 | 1 | Fail | Wrong, unsafe, wrongly refused, an S1 defect, or no usable output |
 
 - **BE-R11 Deterministic-only tasks:** if all checkers are deterministic, score = 5 when all pass. Otherwise the score is derived from the failed checks' defect severities (worst S1→1, S2→2, S3→3, S4→4).
-- **BE-R12 Judge assignment:** a Result from provider X is judged by one model from each of the *other two* providers. If only one other provider is ready, one judge is used and the Result is flagged `needs_review`.
+- **BE-R12 Judge assignment (demo):** a Result from provider X is judged by **one** model from a different provider, chosen by a fixed rotation (Anthropic→OpenAI, OpenAI→Google, Google→Anthropic). If that provider isn't ready, the next one in the rotation is used. *(Post-MVP: two judges, from each of the other providers.)*
 - **BE-R13 Judge output:** judges must return `{score: 1–5, rationale, defects: [...]}`. Invalid output is retried once; if it is still invalid, the Result is flagged `needs_review`.
-- **BE-R14 Combining:** with two judges, score = round-half-up of their mean. If they differ by more than 1, flag `needs_review`.
+- **BE-R14 Combining:** with one judge, the judge's score is used (after BE-R15). *(Post-MVP: with two judges, score = round-half-up of their mean; a difference of more than 1 flags `needs_review`.)*
 - **BE-R15 Deterministic override:** if a code task's unit tests all fail, the score is at most 2, whatever the judges say.
 - **BE-R16 Human final say:** a reviewer's score replaces the computed score (`score_source = human`).
 - **BE-R17 Aggregates:** category score = mean of that model's Result scores in the category, across tiers and repeats, to 1 decimal. Tier sub-scores are computed the same way. Overall = mean of category scores. Results that are not `scored` are excluded and counted separately.
 
 ## 6. Evaluating the Evaluator
 Our acceptance criteria for a probabilistic system state the cases, the repetitions and the decision rule.
-- **Golden set:** 18 owner-labelled Results, 3 per category (D-6). Decision rule: the judges agree within ±1 on ≥ 80% (SM-3).
-- **Seeded defects:** 12 deliberately flawed responses, 2 per category (D-6). Decision rule: ≥ 80% are scored ≤ 2 (SM-4). This is the mutation-style check of the judge.
+- **Golden set:** 6 owner-labelled Results, 1 per category (D-12). Decision rule: the judges agree within ±1 on ≥ 80% (SM-3).
+- **Seeded defects:** 6 deliberately flawed responses, 1 per category (D-12). Decision rule: ≥ 80% are scored ≤ 2 (SM-4). This is the mutation-style check of the judge.
 - **Reproducibility:** the same suite, models and parameters run twice. Decision rule: each category score changes by ≤ 0.5 (SM-2).
 - **Consistency:** when repeats > 1 and a task's scores across repeats differ by ≥ 2, create an `INCONSISTENCY` defect.
 
@@ -123,6 +126,8 @@ Our acceptance criteria for a probabilistic system state the cases, the repetiti
 | Reproducibility | Every Run stores the suite version, task hashes, model IDs, parameters and judge models. |
 
 ## 11. Acceptance Criteria
+
+**Demo scope:** all BE-ACs except **BE-AC-12** (two-judge disagreement), which is Post-MVP. BE-AC-11 applies to the single judge.
 - **BE-AC-01** Given a valid new entry in `models.yaml`, when the app starts, then the model is listed and selectable for a run, with no code change.
 - **BE-AC-02** Given an entry missing `model_id` or a price, when the app starts, then startup fails with an error naming the field and the entry.
 - **BE-AC-03** Given `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` set, when the app starts, then startup fails, explaining that paid keys are not allowed.

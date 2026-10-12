@@ -14,8 +14,9 @@ Spec-driven development. The architect (Madhu) owns intent and acceptance; the c
 Before each task, say which spec governs it. If the task requires a product decision the specs don't settle, **stop and ask**. Never decide it silently in code.
 
 ## Hard rules
-- **$0 cost.** Never add a paid API key, paid service or cloud hosting. Never make a live model call (Claude Code CLI, Codex CLI, Gemini API). Live runs are started only by the architect. Tests use recorded fixtures.
-- **One task, one diff.** Implement one plan task at a time, on a branch `feat/<phase>-<task>`. No unrelated changes, refactors or "clean-ups" (scope creep).
+- **$0 cost.** Never add a paid API key or paid service. Hosting is free tiers only (Netlify, Render; D-13), and deploying needs architect approval. Never make a live model call (Claude Code CLI, Codex CLI, Gemini API). Live runs are started only by the architect. Tests use recorded fixtures.
+- **Demo scope (D-12).** Build only what the specs mark as in the demo. Anything marked Post-MVP is out of scope unless the architect changes the spec.
+- **One phase, one PR; one task, one commit** (D-14). Work on a branch `feat/<phase>-<name>`. Each plan task is its own commit. No unrelated changes, refactors or "clean-ups" (scope creep).
 - **Spec drift:** if code and spec disagree, report it. Fix the code if the spec is right; propose a spec change if the spec is wrong. Never edit a requirement to excuse a defect.
 - **Don't touch without asking:** `specs/*`, `CLAUDE.md`, `.github/workflows/*`, `config/models.yaml`, `.env*`, database migrations that drop or rename anything.
 - **Never** skip, delete or weaken a test to make CI pass.

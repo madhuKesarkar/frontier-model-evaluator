@@ -1,7 +1,20 @@
 # Goal Spec — Frontier Model Evaluator (FME)
 
 > Defines *what* we're building and *why*. The other three specs derive from this one.
-> Status: **DRAFT v0.3** — awaiting architect review (Gate G1). Owner: Madhu Kesarkar.
+> Status: **v1.0 — demo scope (D-12), approved 2026-10-12.** Owner: Madhu Kesarkar.
+> Delivery: working demo by **14 Oct 2026**; course submission deadline **18 Oct 2026**.
+
+## Demo scope at a glance (D-12)
+| In the v1 demo | Moved to Post-MVP |
+|---|---|
+| 18 tasks (6 categories × 3 tiers × 1 task) | 36+ task suite |
+| Real runs on Claude, GPT, Gemini Flash, started from the command line on the owner's Mac | Starting runs from the UI, manual-paste mode, run progress screen |
+| Automated checks + **one** cross-provider judge | Two judges with disagreement review |
+| 1–5 scores, tokens and API-equivalent cost by tier, defects with evidence | Review queue UI, export, run history |
+| 3 screens: **Leaderboard, Model detail, Fit** (template profiles) | Compare screen, custom/saved profiles |
+| Judge check on 6 golden + 6 seeded items | 18 golden + 12 seeded |
+| Read-only public demo on free tiers (Netlify + Render), plus YouTube video | Hosted runs, login |
+
 
 ## 1. Problem Statement
 <!-- What problem does this app solve? Who has this problem today, and how do they cope without this tool? -->
@@ -32,27 +45,26 @@ v1 is a single-user tool run by the owner on her own computer.
 ## 4. Core Features (MVP)
 <!-- Must-have features for v1. Specific enough to scope work, not exhaustive. -->
 - F-1 **Model registry** configured in a file. Adding a model is a configuration change, not a code change.
-- F-2 **Versioned task suite**: 6 categories × 3 tiers, at least 2 tasks per cell (36 or more tasks).
-- F-3 **Evaluation runs**: run selected models on selected categories and tiers, with a call cap. Runs can pause when a plan's quota is used up and resume later.
-- F-4 **Scoring 1–5** per task and per category, using automated checks first and cross-provider LLM judges where judgement is needed.
+- F-2 **Versioned task suite**: 6 categories × 3 tiers, 1 task per cell (18 tasks) for the demo (D-12).
+- F-3 **Evaluation runs** (command line, owner's Mac): run selected models on selected categories and tiers, with a call cap. A run stops a model when its plan quota is used up; re-running resumes without repeating finished tasks.
+- F-4 **Scoring 1–5** per task and per category, using automated checks first and one cross-provider LLM judge where judgement is needed.
 - F-5 **Token and cost tracking** per task: input, output and overhead tokens, plus API-equivalent cost. Estimated values are labelled.
 - F-6 **Defect log** per model, with type, severity, evidence and review status.
 - F-7 **Leaderboard** (home screen) with a score per category per model, sorting and filtering.
 - F-8 **Model detail** screen: category scores by tier, token panel, defects, task drill-down.
-- F-9 **Compare** 2–4 models side by side.
-- F-10 **Use-case fit**: profiles and templates that produce Recommended / Conditional / Not recommended verdicts with reasons.
-- F-11 **Review queue** for judge disagreements and defect triage.
-- F-12 **Manual mode**: copy a prompt into a chat app and paste the reply back.
-- F-13 **Export** leaderboard, model detail and defects as CSV or JSON.
-- F-14 **Run history**: list past runs and compare two runs.
+- F-15 **Read-only public demo**: the dashboard is deployed on free tiers and serves results from the owner's real run (D-13).
+- F-10 **Use-case fit**: three template profiles that produce Recommended / Conditional / Not recommended verdicts with reasons.
 
 ## 5. Nice-to-Have Features (Post-MVP)
 <!-- Features explicitly deferred. Helps prevent scope creep. -->
+- Compare screen; custom and saved profiles; review-queue UI; export; run history and run comparison.
+- Starting runs from the UI, run progress screen, manual-paste mode.
+- Two judges per result with disagreement review; full golden set (18 + 12).
+- Growing the suite beyond 1 task per cell.
 - Paid-API access modes, enabling flagship models such as Gemini Pro.
 - Users uploading their own tasks from their application under test.
 - Login and multi-user use.
-- Growing the suite to 5 or more tasks per cell.
-- Hosted deployment so that others can view results.
+- Hosted (online) evaluation runs.
 - Scheduled re-runs when a provider releases a new model version.
 
 ## 6. Out of Scope
@@ -62,26 +74,27 @@ v1 is a single-user tool run by the owner on her own computer.
 - A public leaderboard or marketing benchmark.
 - Billing, multi-tenancy and user sign-up.
 - Real-time or streaming evaluation. v1 runs in batches only.
-- Any paid API usage or paid cloud service in v1.
+- Any paid API usage or paid cloud service in v1 (free tiers only).
 
 ## 7. Success Metrics
 <!-- How do we know this app is working? Each metric states how it is assessed. -->
 | ID | Metric | How we assess it |
 |---|---|---|
 | SM-1 | After a completed run on three models, the Leaderboard shows a 1–5 score for each of the six categories for each model. | E2E test on fixture data, plus a manual check after the first live run |
-| SM-2 | Scores are reproducible: running the same suite twice on the same model changes each category score by at most 0.5. | Two live runs, compared on the run-history screen; recorded in the evaluation report |
-| SM-3 | The LLM judges agree with the owner's labels: at least 80% of golden-set items are scored within ±1 of the human score. | Judge calibration run on the golden set |
-| SM-4 | The judges catch planted defects: at least 80% of seeded flawed responses are scored 2 or lower. | Seeded-defect check (mutation-style test of the judge) |
+| SM-2 | Scores are reproducible: running the same suite twice on the same model changes each category score by at most 0.5. | **Post-MVP** for the demo (needs two full live runs and run history). Measured only if quota allows. |
+| SM-3 | The LLM judge agrees with the owner's labels: at least 80% of the 6 golden items (5 of 6) are scored within ±1 of the human score. | Judge calibration run on the golden set |
+| SM-4 | The judge catches planted defects: at least 80% of the 6 seeded flawed responses (5 of 6) are scored 2 or lower. | Seeded-defect check (mutation-style test of the judge) |
 | SM-5 | A user reaches a fit verdict for every model in 3 clicks or fewer from the home screen. | E2E test |
 | SM-6 | Every displayed defect links to its prompt, response and evidence. | Contract and E2E tests |
-| SM-7 | Running the project costs $0 beyond the owner's existing Claude Pro and ChatGPT Go subscriptions. | Paid-key guard test, plus review of the access modes used |
+| SM-7 | Running the project costs $0 beyond the owner's existing Claude Pro and ChatGPT Go subscriptions. | Paid-key guard test, plus review of the access modes and hosting tiers used |
+| SM-8 | The demo is reachable at a public URL and shows the owner's real run results. | Live verification after deploy (claude-plan Phase 5) |
 
 ## 8. Constraints & Assumptions
 <!-- Budget, timeline, team size, must-use tech, platforms, etc. -->
 - **Budget: $0 extra.** Models are reached only through the owner's Claude Pro and ChatGPT Go subscriptions (via their official command-line tools), Google's free Gemini API tier, or manual paste. No paid API keys. See backend-spec §3.
-- **Platform:** a local web application on the owner's Mac. v1 has no cloud hosting.
+- **Platform:** evaluation runs on the owner's Mac (where the CLIs are signed in). Results are published to a **read-only** public demo: frontend on Netlify (free), API on Render (free tier). No model is ever called from the deployed site (D-13).
 - **Team:** 1 person (architect), plus a coding agent (contractor).
-- **Timeline:** no fixed date; delivered phase by phase (D-7).
+- **Timeline:** working demo by 14 Oct 2026; course submission by 18 Oct 2026 (D-12, supersedes D-7).
 - **Required technology:** Python backend (the evaluation libraries are Python), React frontend, SQLite storage. Exact choices are proposed in the frontend and backend specs.
 - **Quotas:** subscription and free-tier limits are the binding resource. The suite size and repeat count are sized so that a full run fits within them.
 - **Fairness:** results describe each model *as reached through its access mode*: Claude via Claude Code on Pro, GPT via Codex on Go, and Gemini Flash on the free tier. They are not a comparison of three flagship APIs, and the UI must say so.
@@ -126,7 +139,11 @@ v1 is a single-user tool run by the owner on her own computer.
 | D-8 | 2026-10-10 | Visual style: clean neutral palette, system font, one accent colour. The agent proposes design tokens for review. | frontend |
 | D-9 | 2026-10-10 | Minimum supported width 1024 px (desktop-first; phone layout out of scope) | frontend |
 | D-10 | 2026-10-10 | Sandbox limits: 10 s run time and 512 MB memory per execution | backend |
-| D-11 | 2026-10-10 | Run progress via polling `GET /runs/{id}` every 3 s while a run is active; no server-sent events in v1 | frontend, API |
+| D-11 | 2026-10-10 | Run progress via polling `GET /runs/{id}` every 3 s while a run is active; no server-sent events in v1. *(Dormant in the demo: runs start from the command line.)* | frontend, API |
+| D-12 | 2026-10-12 | **Demo scope** for the course submission: 18 tasks, one judge, 3 screens (Leaderboard, Model detail, Fit with templates), 6 golden + 6 seeded. Everything else moves to Post-MVP. Demo by 14 Oct, submit by 18 Oct. **Supersedes D-6 and D-7.** | all |
+| D-13 | 2026-10-12 | **Deployment:** read-only demo on free tiers, Netlify (frontend) + Render (API serving the owner's real run results); YouTube video as backup. Live runs stay on the owner's Mac. | goal, backend, API, plan |
+| D-14 | 2026-10-12 | **Process:** one PR per phase, each task a separate commit, to fit the timeline (replaces one PR per task). | plan, CLAUDE.md |
+| D-15 | 2026-10-12 | Docker sandbox confirmed: the owner has Docker Desktop. D-10 limits stand. | backend |
 
-### Open questions (resolve one by one before the plan is approved)
+### Open questions
 - OQ-2 `[NEEDS CLARIFICATION]` Exact model per provider, confirmed at the first live run (G4): which Claude model in Claude Code, which GPT model Codex uses on Go, and which free Gemini Flash model.
