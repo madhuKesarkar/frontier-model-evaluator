@@ -1,11 +1,13 @@
 # API Contract Spec — Frontier Model Evaluator
 
 > The seam between frontend and backend: exact messages, including failures.
-> Status: **DRAFT v0.3** — awaiting review. Both sides are built against this document.
+> Status: **v1.0 — demo scope (D-12).** Both sides are built against this document.
+>
+> **Demo endpoints:** `GET /health`, `GET /models`, `GET /leaderboard`, `GET /models/{key}`, `GET /models/{key}/defects`, `GET /models/{key}/results`, `GET /results/{id}`, `GET /profile-templates`, `POST /fit` (with `profile_id` of a template). **Post-MVP:** `/preflight`, `/compare`, all `/runs…` endpoints, manual, review, `/profiles` CRUD, `/export`. Their rows below are kept as the Post-MVP design.
 
 ## 1. Conventions
-- Base URL: `http://127.0.0.1:8000/api/v1`. JSON request and response bodies.
-- **No authentication** (single-user local tool, D-4). The server binds to localhost only.
+- Base URL: `http://127.0.0.1:8000/api/v1` locally; the Render URL + `/api/v1` in the deployed demo. JSON request and response bodies.
+- **No authentication** (D-4). Locally the server binds to localhost only. The deployed demo is read-only (D-13) and allows CORS only from the Netlify site's origin.
 - Timestamps: ISO-8601 UTC with a trailing `Z`, for example `2026-10-10T08:30:00Z`.
 - Money: `api_equiv_cost_usd` is a decimal number with 6 decimal places.
 - Token fields are an integer, or `null` when not reported. A sibling `*_estimated: true` flag marks estimated values.
@@ -107,6 +109,8 @@
 | `GET /export?view=leaderboard\|model\|defects&format=csv\|json&run_id=&model_key=` | 200 file (`text/csv` or `application/json`). Values match the corresponding view endpoint. | 400 `model_key` missing for `model`/`defects` · 404 |
 
 ## 4. Acceptance Criteria
+
+**Demo scope:** API-AC-01 to 04 for the demo endpoints. **API-AC-05** (export) is Post-MVP.
 - **API-AC-01** Given each endpoint above, when called with valid input, then the response matches the documented schema (verified by contract tests generated from this document and the OpenAPI schema).
 - **API-AC-02** Given every documented failure, when triggered, then the documented status and error shape are returned.
 - **API-AC-03** Given any timestamp in any response, when inspected, then it is UTC with a trailing `Z`.
