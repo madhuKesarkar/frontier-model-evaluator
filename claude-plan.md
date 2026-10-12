@@ -76,3 +76,4 @@ Demo scope: **35 ACs** tested; 9 Post-MVP (BE-AC-12, API-AC-05, FE-AC-06, 08–1
 | 2026-10-10 | 0.2 Backend skeleton | merged (PR #4); verified on architect's Mac (Python 3.12.4, 2 passed) | ruff/mypy(strict)/pytest pass; health test fails when endpoint broken; live server returns 200 {"status":"ok"} on 127.0.0.1:8000 |
 | 2026-10-10 | 0.3 Frontend skeleton | merged (PR #5) | lint/typecheck/3 tests/build pass; 2 mutation checks caught (1 after strengthening a weak test); headless Chromium shows connected + not-reachable states via Vite proxy |
 | 2026-10-12 | Re-scoped to demo (D-12..D-15) for 14 Oct demo / 18 Oct submission | in review | this PR |
+| 2026-10-12 | Phase 0 finish: 0.4 Makefile + AC check, 0.5 CI, 0.6 ESLint 10 | in review | see Phase 0 PR |
