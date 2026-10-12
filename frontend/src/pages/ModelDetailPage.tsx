@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useLocation, useParams } from "react-router-dom";
 
 import { api, ApiError } from "../api/client";
 import { ScoreChip } from "../components/Badges";
@@ -98,6 +99,12 @@ export function ModelDetailPage() {
     queryFn: ({ signal }) => api.model(key, signal),
     retry: (count, err) => !(err instanceof ApiError && err.status === 404) && count < 1,
   });
+  // Links such as /models/x#defects (from Fit) scroll to that section once it renders.
+  const { hash } = useLocation();
+  const loaded = query.isSuccess;
+  useEffect(() => {
+    if (loaded && hash) document.getElementById(hash.slice(1))?.scrollIntoView();
+  }, [loaded, hash]);
 
   if (query.isPending) return <Loading what="the model" />;
   if (query.isError) {
