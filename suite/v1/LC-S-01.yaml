@@ -1,0 +1,33 @@
+task_id: LC-S-01
+version: 1
+category: long_context
+tier: simple
+title: Answer from a short policy, or say it isn't there
+prompt: |
+  Answer using ONLY the document below. If the document does not contain the answer,
+  answer NOT_IN_DOCUMENT. Return only a JSON object: {"q1": "...", "q2": "..."}
+
+  Document — Device Lab Booking Policy
+  Testers may book a physical device for at most 4 hours per booking. Bookings can be made up to
+  7 days in advance. A booking not checked in within 15 minutes of its start time is released
+  automatically. Devices must be factory-reset by the lab team after every booking.
+
+  q1: How many minutes after the start time is an unclaimed booking released? (number only)
+  q2: Who approves bookings longer than 4 hours?
+checkers:
+  - type: json_schema
+    on_fail: {type: FORMAT_BREAK, severity: S2}
+    schema:
+      type: object
+      required: [q1, q2]
+      properties: {q1: {type: [string, number]}, q2: {type: string}}
+  - type: exact_match
+    extract: {json_pointer: "/q1"}
+    expected: "15"
+    on_fail: {type: HALLUCINATION, severity: S2}
+  - type: exact_match
+    extract: {json_pointer: "/q2"}
+    expected: "NOT_IN_DOCUMENT"
+    on_fail: {type: HALLUCINATION, severity: S1}
+reference_response: |
+  {"q1": "15", "q2": "NOT_IN_DOCUMENT"}

@@ -1,0 +1,38 @@
+task_id: CG-S-01
+version: 1
+category: code_generation
+tier: simple
+title: Palindrome check ignoring case and punctuation
+prompt: |
+  Write a Python function `is_palindrome(text: str) -> bool` that returns True if `text`
+  reads the same forwards and backwards, ignoring letter case and every character that is
+  not a letter or digit. An empty string (or one with no letters/digits) is a palindrome.
+  Return only the code in a single ```python block.
+checkers:
+  - type: unit_tests
+    on_fail: {type: INCORRECT_CODE, severity: S2}
+    tests: |
+      from solution import is_palindrome
+
+      def test_simple():
+          assert is_palindrome("racecar")
+
+      def test_case_and_punctuation():
+          assert is_palindrome("A man, a plan, a canal: Panama!")
+
+      def test_not_palindrome():
+          assert not is_palindrome("release")
+
+      def test_digits_count():
+          assert is_palindrome("No 1 on")  # "no1on"
+          assert not is_palindrome("12 3")
+
+      def test_empty_and_symbols_only():
+          assert is_palindrome("")
+          assert is_palindrome("?!")
+reference_response: |
+  ```python
+  def is_palindrome(text: str) -> bool:
+      cleaned = [c.lower() for c in text if c.isalnum()]
+      return cleaned == cleaned[::-1]
+  ```

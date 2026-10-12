@@ -1,0 +1,32 @@
+task_id: SO-S-01
+version: 1
+category: structured_output
+tier: simple
+title: Extract contact details into JSON
+prompt: |
+  Extract the contact details from the text below into a JSON object with exactly these keys:
+  "name" (string), "email" (string), "phone" (string, digits only, no spaces or "+").
+  Return only the JSON object, with no extra text.
+
+  Text: "Please loop in Priya Raman (priya.raman@example.com, +91 98450 12345) on the release sign-off."
+checkers:
+  - type: json_schema
+    on_fail: {type: FORMAT_BREAK, severity: S2}
+    schema:
+      type: object
+      additionalProperties: false
+      required: [name, email, phone]
+      properties:
+        name: {type: string}
+        email: {type: string}
+        phone: {type: string, pattern: "^[0-9]+$"}
+  - type: exact_match
+    extract: {json_pointer: "/email"}
+    expected: "priya.raman@example.com"
+    on_fail: {type: HALLUCINATION, severity: S2}
+  - type: exact_match
+    extract: {json_pointer: "/phone"}
+    expected: "919845012345"
+    on_fail: {type: INSTRUCTION_VIOLATION, severity: S3}
+reference_response: |
+  {"name": "Priya Raman", "email": "priya.raman@example.com", "phone": "919845012345"}

@@ -1,0 +1,79 @@
+task_id: SO-C-01
+version: 1
+category: structured_output
+tier: complex
+title: Release notes to a sorted, validated change list
+prompt: |
+  Read the release notes below and return a JSON object:
+  {
+    "version": string,
+    "release_date": string in ISO format YYYY-MM-DD,
+    "changes": [
+      {"id": string (the ticket ID, e.g. "PAY-112"),
+       "type": one of "feature", "fix", "breaking", "security",
+       "summary": string (max 100 characters)}
+    ]
+  }
+  Rules:
+  - Include every ticket mentioned, exactly once.
+  - Sort "changes" by ticket ID in ascending alphabetical order.
+  - A change that removes or renames anything that clients use is "breaking", even if it is also a fix.
+  - Return only the JSON, no comments, no extra keys.
+
+  Release notes — Payments API 4.2.0 (released on the 3rd of March 2026)
+
+  This release focuses on reliability. We added idempotency keys for refund requests (PAY-131),
+  so retried refunds are no longer processed twice. Webhook signatures now use SHA-256 instead of
+  SHA-1 (SEC-019) after an internal review; the old SHA-1 header is still sent for now.
+
+  Fixes: currency rounding for JPY amounts was off by one unit in some cases (PAY-118);
+  the /v3/payouts list endpoint ignored the `limit` parameter (PAY-127).
+
+  Please note: the deprecated `customer_ref` field has been removed from the charge response
+  (PAY-112). Use `customer_id` instead. We also introduced a sandbox-only endpoint for simulating
+  card declines (PAY-140).
+checkers:
+  - type: json_schema
+    on_fail: {type: FORMAT_BREAK, severity: S2}
+    schema:
+      type: object
+      additionalProperties: false
+      required: [version, release_date, changes]
+      properties:
+        version: {const: "4.2.0"}
+        release_date: {const: "2026-03-03"}
+        changes:
+          type: array
+          minItems: 6
+          maxItems: 6
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, type, summary]
+            properties:
+              id: {type: string}
+              type: {enum: [feature, fix, breaking, security]}
+              summary: {type: string, maxLength: 100}
+  - type: exact_match
+    extract: {json_pointer: "/changes/*/id"}
+    expected: "PAY-112,PAY-118,PAY-127,PAY-131,PAY-140,SEC-019"
+    on_fail: {type: INSTRUCTION_VIOLATION, severity: S2}
+  - type: exact_match
+    extract: {json_pointer: "/changes/*/type"}
+    expected: "breaking,fix,fix,feature,feature,security"
+    on_fail: {type: REASONING_ERROR, severity: S3}
+  - type: llm_judge
+    on_fail: {type: HALLUCINATION, severity: S3}
+rubric: |
+  Check that every summary is faithful to the release notes (no invented details), under 100
+  characters, and that the classification follows the stated rules (PAY-112 is breaking because a
+  field was removed; SEC-019 is security). Deduct for any invented ticket, detail, or extra key.
+reference_response: |
+  {"version": "4.2.0", "release_date": "2026-03-03", "changes": [
+    {"id": "PAY-112", "type": "breaking", "summary": "Removed deprecated customer_ref field from charge response; use customer_id"},
+    {"id": "PAY-118", "type": "fix", "summary": "Fixed off-by-one-unit currency rounding for JPY amounts"},
+    {"id": "PAY-127", "type": "fix", "summary": "/v3/payouts list endpoint now honours the limit parameter"},
+    {"id": "PAY-131", "type": "feature", "summary": "Idempotency keys for refund requests prevent double processing"},
+    {"id": "PAY-140", "type": "feature", "summary": "Sandbox-only endpoint for simulating card declines"},
+    {"id": "SEC-019", "type": "security", "summary": "Webhook signatures use SHA-256 instead of SHA-1"}
+  ]}

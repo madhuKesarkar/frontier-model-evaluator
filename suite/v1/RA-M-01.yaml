@@ -1,0 +1,23 @@
+task_id: RA-M-01
+version: 1
+category: reasoning
+tier: mid
+title: Device-lab rental cost with discount and GST
+prompt: |
+  A QA team rents test devices:
+  - Pixel phones cost ₹350 per device per day.
+  - iPhones cost ₹520 per device per day.
+  They rent 3 Pixels for 4 days and 2 iPhones for 3 days.
+  If the total rental exceeds ₹6,000, a 15% discount applies to the whole total.
+  18% GST is then added to the (possibly discounted) amount.
+  What is the final amount in rupees, rounded to 2 decimal places?
+  End your reply with a final line in exactly this form: ANSWER: <number with 2 decimals, no currency symbol or commas>
+checkers:
+  - type: exact_match
+    extract: {answer_line: "ANSWER:"}
+    expected: "7341.96"
+    on_fail: {type: REASONING_ERROR, severity: S2}
+reference_response: |
+  Pixels: 3 × 4 × 350 = 4200. iPhones: 2 × 3 × 520 = 3120. Total 7320 > 6000, so 15% off: 6222.
+  Add 18% GST: 6222 × 1.18 = 7341.96.
+  ANSWER: 7341.96

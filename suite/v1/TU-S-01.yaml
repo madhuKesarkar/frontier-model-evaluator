@@ -1,0 +1,42 @@
+task_id: TU-S-01
+version: 1
+category: tool_use
+tier: simple
+title: Pick the right tool and arguments
+prompt: |
+  You can call these tools:
+  - get_weather(city: string, unit: "celsius" | "fahrenheit") -> current temperature
+  - get_local_time(city: string) -> current local time
+
+  User: "Is it hotter than 30 degrees Celsius in Bengaluru right now?"
+
+  Respond with the tool call(s) you would make next, as JSON only:
+  {"calls": [{"tool": "<name>", "arguments": {...}}]}
+checkers:
+  - type: json_schema
+    on_fail: {type: TOOL_CALL_ERROR, severity: S2}
+    schema:
+      type: object
+      required: [calls]
+      properties:
+        calls:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [tool, arguments]
+            properties: {tool: {type: string}, arguments: {type: object}}
+  - type: exact_match
+    extract: {json_pointer: "/calls/*/tool"}
+    expected: "get_weather"
+    on_fail: {type: TOOL_CALL_ERROR, severity: S2}
+  - type: exact_match
+    extract: {json_pointer: "/calls/0/arguments/unit"}
+    expected: "celsius"
+    on_fail: {type: TOOL_CALL_ERROR, severity: S3}
+  - type: exact_match
+    extract: {json_pointer: "/calls/0/arguments/city"}
+    expected: "Bengaluru"
+    on_fail: {type: TOOL_CALL_ERROR, severity: S2}
+reference_response: |
+  {"calls": [{"tool": "get_weather", "arguments": {"city": "Bengaluru", "unit": "celsius"}}]}

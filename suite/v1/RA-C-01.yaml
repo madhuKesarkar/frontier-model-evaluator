@@ -1,0 +1,37 @@
+task_id: RA-C-01
+version: 1
+category: reasoning
+tier: complex
+title: Test-suite ownership logic puzzle
+prompt: |
+  Four QA engineers — Asha, Ben, Chen and Divya — each own exactly one test suite
+  (API, UI, Performance, Security). Each suite runs on a different weekday, Monday to Thursday.
+
+  Clues:
+  1. The Security suite runs the day after Ben's suite.
+  2. Asha owns neither the UI suite nor the Performance suite.
+  3. Divya's suite runs on Monday or Thursday.
+  4. The API suite runs on Tuesday.
+  5. Chen's suite runs the day before the Performance suite.
+  6. Ben's suite does not run on Monday.
+
+  Who owns the Security suite, and on which day does it run? Explain your reasoning briefly.
+  End your reply with a final line in exactly this form: ANSWER: <Name>, <Day>
+checkers:
+  - type: exact_match
+    extract: {answer_line: "ANSWER:"}
+    expected: "Asha, Thursday"
+    on_fail: {type: REASONING_ERROR, severity: S2}
+  - type: llm_judge
+    on_fail: {type: REASONING_ERROR, severity: S3}
+rubric: |
+  The unique solution is: Divya-UI-Monday, Chen-API-Tuesday, Ben-Performance-Wednesday,
+  Asha-Security-Thursday. Judge whether the explanation is logically valid and consistent with
+  every clue. A correct final answer reached with a wrong or contradictory explanation scores at most 3.
+reference_response: |
+  API is Tuesday (clue 4). Ben is not Monday (6) and Security is the day after Ben (1), so Ben is
+  Tuesday or Wednesday. Chen is the day before Performance (5). Trying Ben = Wednesday gives
+  Security = Thursday; Chen must then be Tuesday (API) with Performance on Wednesday (Ben's).
+  Divya takes Monday (3) and the remaining suite, UI. Asha gets Security on Thursday, consistent
+  with clue 2. Ben = Tuesday would force Ben to own API and leaves no valid day for Chen.
+  ANSWER: Asha, Thursday

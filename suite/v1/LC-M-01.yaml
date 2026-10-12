@@ -1,0 +1,61 @@
+task_id: LC-M-01
+version: 1
+category: long_context
+tier: mid
+title: Release-process handbook questions across sections
+prompt: |
+  Answer using ONLY the document below. If the document does not contain the answer,
+  answer NOT_IN_DOCUMENT. Return only a JSON object: {"q1": "...", "q2": "...", "q3": "..."}
+
+  Document — Release Process Handbook (Mobile Team)
+
+  1. Branching
+  All work happens on short-lived feature branches cut from `main`. A release branch named
+  `release/<version>` is cut every second Tuesday at 11:00 IST. After the cut, only fixes labelled
+  `release-blocker` may be merged into the release branch, and each must also be merged to `main`.
+
+  2. Quality gates
+  A release candidate must pass three gates before it can be submitted to the stores:
+  (a) the automated regression suite with a pass rate of at least 98%; (b) a manual exploratory
+  session of at least 90 minutes on two Android and two iOS devices; (c) a performance check in
+  which cold start time on the reference Android device is under 2.5 seconds. Gate (c) may be
+  waived only by the Head of Mobile, and the waiver must be recorded in the release ticket.
+
+  3. Staged rollout
+  Android releases go to 5% of users on day 1, 20% on day 2, 50% on day 4 and 100% on day 7.
+  iOS releases use phased release, which Apple controls over 7 days. The rollout is paused
+  automatically if the crash-free sessions rate falls below 99.5% in any 24-hour window.
+
+  4. Hotfixes
+  A hotfix branch is cut from the latest release tag. Hotfixes skip gate (b) but must pass gates
+  (a) and (c). Hotfixes on Android go directly to 20% and then follow the normal schedule from
+  day 2 onwards.
+
+  5. Communication
+  The release manager posts the release notes in #mobile-releases at least 24 hours before store
+  submission and tags the support team lead.
+
+  q1: What is the minimum regression-suite pass rate for a hotfix, as a percentage (number only)?
+  q2: Who can waive the cold-start performance gate?
+  q3: What is the Android rollout percentage on day 3 of a normal release (number only)?
+checkers:
+  - type: json_schema
+    on_fail: {type: FORMAT_BREAK, severity: S2}
+    schema:
+      type: object
+      required: [q1, q2, q3]
+      properties: {q1: {type: [string, number]}, q2: {type: string}, q3: {type: [string, number]}}
+  - type: exact_match
+    extract: {json_pointer: "/q1"}
+    expected: "98"
+    on_fail: {type: REASONING_ERROR, severity: S2}
+  - type: exact_match
+    extract: {json_pointer: "/q2"}
+    expected: "Head of Mobile"
+    on_fail: {type: HALLUCINATION, severity: S2}
+  - type: exact_match
+    extract: {json_pointer: "/q3"}
+    expected: "20"
+    on_fail: {type: REASONING_ERROR, severity: S2}
+reference_response: |
+  {"q1": "98", "q2": "Head of Mobile", "q3": "20"}
