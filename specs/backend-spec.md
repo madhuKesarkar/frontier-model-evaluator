@@ -131,7 +131,7 @@ Our acceptance criteria for a probabilistic system state the cases, the repetiti
 - **BE-AC-01** Given a valid new entry in `models.yaml`, when the app starts, then the model is listed and selectable for a run, with no code change.
 - **BE-AC-02** Given an entry missing `model_id` or a price, when the app starts, then startup fails with an error naming the field and the entry.
 - **BE-AC-03** Given `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` set, when the app starts, then startup fails, explaining that paid keys are not allowed.
-- **BE-AC-04** Given the v1 suite, when validated, then every category × tier cell has ≥ 2 tasks, and every task has ≥ 1 checker and a content hash.
+- **BE-AC-04** Given the v1 suite, when validated, then every category × tier cell has ≥ 1 task (D-12; Post-MVP: ≥ 2), and every task has ≥ 1 checker and a content hash.
 - **BE-AC-05** Given a run with 2 models, all tasks and repeats = 2, when it completes, then there are exactly 2 × tasks × 2 Results, each `scored`, `error` or `skipped`.
 - **BE-AC-06** Given an adapter returning `transient` three times then success, when called, then the Result is scored and 4 calls are counted. Given four `transient` errors, then the Result is `error` with a `TIMEOUT_ERROR` defect.
 - **BE-AC-07** Given an adapter returning `quota_exhausted` on the 5th task, when the run continues, then that model's remaining Results are `paused_quota`, no defect is created, and Resume finishes them without repeating the first four.
