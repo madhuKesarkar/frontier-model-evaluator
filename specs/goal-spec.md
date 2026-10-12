@@ -145,6 +145,8 @@ v1 is a single-user tool run by the owner on her own computer.
 | D-14 | 2026-10-12 | **Process:** one PR per phase, each task a separate commit, to fit the timeline (replaces one PR per task). | plan, CLAUDE.md |
 | D-15 | 2026-10-12 | Docker sandbox confirmed: the owner has Docker Desktop. D-10 limits stand. | backend |
 | D-16 | 2026-10-12 | **Combined scoring:** for tasks with both automated checks and a judge, final score = the lower of the judge's score and the automated-check score (BE-R14). | backend |
+| D-18 | 2026-10-12 | **S1 blocking rule for the demo:** any S1 defect that is not marked false positive (open or confirmed) in a must-have category makes the verdict Not recommended, because the review UI is Post-MVP (BE-R25). | backend |
+| D-19 | 2026-10-12 | **Fit templates** as proposed in backend-spec §9.1 (Test-case generation tool, Customer support chatbot, Code assistant); editable later. | backend, frontend |
 | D-17 | 2026-10-12 | **Two providers only:** Claude (Claude Code on Pro) and ChatGPT (Codex on Go). Gemini moves to Post-MVP. Each provider's results are judged by the other. **Supersedes D-1** and the Gemini part of D-2. | all |
 
 ### Open questions
