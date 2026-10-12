@@ -34,3 +34,4 @@ logs/
 .idea/
 .vscode/
 fme.db
+e2e.db
