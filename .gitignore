@@ -33,3 +33,4 @@ logs/
 .DS_Store
 .idea/
 .vscode/
+fme.db
