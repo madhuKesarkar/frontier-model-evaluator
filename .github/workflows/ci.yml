@@ -35,7 +35,13 @@ jobs:
       - run: ruff check .
       - run: ruff format --check .
       - run: mypy .
-      - run: pytest -q
+      - name: Build the code sandbox image (backend-spec BE-R10)
+        run: docker build -t fme-sandbox:1 ../sandbox
+      - name: pytest (Docker sandbox tests required, never skipped)
+        run: pytest -q
+        env:
+          FME_REQUIRE_DOCKER: "1"
+          FME_SANDBOX_IMAGE: fme-sandbox:1
 
   frontend:
     name: Frontend (eslint, prettier, tsc, vitest, build)
