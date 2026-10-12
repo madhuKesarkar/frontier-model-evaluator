@@ -77,5 +77,6 @@ Demo scope: **35 ACs** tested; 9 Post-MVP (BE-AC-12, API-AC-05, FE-AC-06, 08–1
 | 2026-10-10 | 0.3 Frontend skeleton | merged (PR #5) | lint/typecheck/3 tests/build pass; 2 mutation checks caught (1 after strengthening a weak test); headless Chromium shows connected + not-reachable states via Vite proxy |
 | 2026-10-12 | Re-scoped to demo (D-12..D-15) for 14 Oct demo / 18 Oct submission | merged | PR #6 |
 | 2026-10-12 | Phase 0 finish: 0.4 Makefile + AC check, 0.5 CI, 0.6 ESLint 10 | merged | PR #7; first CI run green (4 jobs) |
-| 2026-10-12 | D-16 (min scoring), D-17 (Claude + ChatGPT only) | in review | Phase 1 PR |
-| 2026-10-12 | Phase 1 engine: 1.1–1.8 | in review | 109 tests pass with Docker required; 17/17 Phase 1 ACs covered; mutation checks on BE-AC-03, 07, 11, 13, 15 caught; synthetic demo run via CLI |
+| 2026-10-12 | D-16 (min scoring), D-17 (Claude + ChatGPT only) | merged | PR #8 |
+| 2026-10-12 | Phase 1 engine: 1.1–1.8 | merged (PR #8, CI green incl. real sandbox image) | 109 tests pass with Docker required; 17/17 Phase 1 ACs covered; mutation checks on BE-AC-03, 07, 11, 13, 15 caught; synthetic demo run via CLI |
+| 2026-10-12 | Phase 2: D-18, D-19, 2.1 fit engine, 2.2 read API + OpenAPI snapshot | in review | 155 tests pass (Docker required); API-AC-01..04 + BE-AC-18..20 covered; 7 mutations caught; 26/35 demo ACs covered |

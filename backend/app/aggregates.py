@@ -54,6 +54,7 @@ class ModelSummary:
     tokens_by_tier: dict[str, TokenStats]
     avg_cost_per_task_usd: float | None
     p50_latency_ms: int | None
+    p95_latency_ms: int | None
     open_s1_s2_defects: int
     needs_review: int
 
@@ -116,6 +117,7 @@ def summarize_model(s: Session, run_id: int, model_key: str) -> ModelSummary:
         tokens_by_tier=tokens,
         avg_cost_per_task_usd=round(mean(costs), 6) if costs else None,
         p50_latency_ms=_percentile(latencies, 50),
+        p95_latency_ms=_percentile(latencies, 95),
         open_s1_s2_defects=open_s1_s2,
         needs_review=sum(1 for r in rows if r.needs_review),
     )

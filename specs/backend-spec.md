@@ -109,12 +109,21 @@ Our acceptance criteria for a probabilistic system state the cases, the repetiti
 - **BE-R23 Fit score** = Σ(weight_c × score_c) / Σ(weight_c) over categories with weight > 0. Each category score is weighted by the profile's tier mix using tier sub-scores.
 - **BE-R24 Expected cost per task** = Σ over tiers of (tier mix % × the model's average cost per task in that tier).
 - **BE-R25 Verdict:**
-  - **Not recommended** if fit < 3.0, **or** any `confirmed` S1 defect is in a must-have category, **or** any must-have category scores < 3.0.
+  - **Not recommended** if fit < 3.0, **or** any S1 defect that is not `false_positive` (open or confirmed, D-18) is in a must-have category, **or** any must-have category scores < 3.0.
   - Otherwise **Conditional** if fit is 3.0–3.99, **or** expected cost exceeds the profile limit, **or** p95 latency exceeds the profile limit.
   - Otherwise **Recommended**.
   - Every verdict lists the rules that produced it.
 - **BE-R26** Fit is deterministic: the same profile on the same run data gives the same output.
-- **BE-R27** Templates are read-only, but can be copied into a custom profile.
+- **BE-R27** Templates are read-only, but can be copied into a custom profile (custom profiles are Post-MVP).
+
+### 9.1 Template profiles (D-19)
+| Template | Weights (CG / RA / SO / TD / LC / TU) | Must-have | Tier mix (S / M / C) | Limits |
+|---|---|---|---|---|
+| Test-case generation tool | 1 / 3 / 4 / 5 / 2 / 1 | Test Design | 20 / 60 / 20 | max cost $0.05 per task |
+| Customer support chatbot | 0 / 3 / 3 / 0 / 5 / 5 | Long-Context, Tool Use | 40 / 40 / 20 | max p95 latency 15,000 ms |
+| Code assistant | 5 / 4 / 3 / 2 / 2 / 3 | Code Generation | 20 / 50 / 30 | none |
+
+Verdict reasons also list **strengths** (weighted categories scoring ≥ 4.0, highest first, max 3) and **risks** (weighted categories scoring < 3.5, lowest first, max 3).
 
 ## 10. Non-Functional Requirements
 | Area | Requirement |
@@ -146,7 +155,7 @@ Our acceptance criteria for a probabilistic system state the cases, the repetiti
 - **BE-AC-15** Given a defect marked `false_positive`, when aggregates and fit are recalculated, then it no longer counts.
 - **BE-AC-16** Given input = 1,000, output = 500, prices 3.00 and 15.00, when cost is computed, then it equals $0.010500.
 - **BE-AC-17** Given an adapter that doesn't report reasoning tokens, when stored, then `reasoning_tokens` is null, not 0.
-- **BE-AC-18** Given a profile with Code Generation as must-have and a confirmed S1 defect in that category, when fit is computed, then the verdict is Not recommended and the defect is cited.
+- **BE-AC-18** Given a profile with Code Generation as must-have and an S1 defect (open or confirmed, D-18) in that category, when fit is computed, then the verdict is Not recommended and the defect is cited; marking that defect false_positive removes the block.
 - **BE-AC-19** Given a profile with a $0.01 cost limit and a model whose expected cost is $0.03, when fit is computed, then the verdict is at best Conditional and the overrun is cited.
 - **BE-AC-20** Given the same profile and run, when fit is computed twice, then the outputs are identical.
 - **BE-AC-21** Given the golden set, when the calibration check runs, then the agreement rate is reported, and the check passes only if it is ≥ 80% (SM-3).

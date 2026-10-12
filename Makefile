@@ -5,7 +5,7 @@ SHELL := /bin/bash
 VENV  := backend/.venv/bin
 PY    := $(VENV)/python
 
-.PHONY: help setup dev dev-backend dev-frontend lint test ac-check ac-check-strict check sandbox migrate eval demo-data summary
+.PHONY: help setup dev dev-backend dev-frontend lint test ac-check ac-check-strict check sandbox migrate eval demo-data summary openapi api
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -34,6 +34,9 @@ demo-data: migrate ## Load the SYNTHETIC demo run (recorded responses, no live c
 
 eval: migrate ## LIVE run on your subscriptions (architect only). Usage: make eval MODELS="claude-pro gpt-go"
 	cd backend && .venv/bin/python -m app.eval run --models $(MODELS) --call-cap $(or $(CAP),80)
+
+openapi: ## Regenerate backend/openapi.json after a reviewed API contract change
+	backend/.venv/bin/python scripts/export_openapi.py
 
 summary: ## Print scores for the latest run
 	cd backend && .venv/bin/python -m app.eval summary
