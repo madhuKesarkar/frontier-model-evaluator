@@ -1,0 +1,10 @@
+{
+ "text": "```python\nimport time\nfrom collections import OrderedDict\nfrom typing import Any, Callable, Hashable\n\nclass TTLCache:\n    def __init__(self, capacity: int, ttl_seconds: float,\n                 clock: Callable[[], float] = time.monotonic) -> None:\n        if capacity < 1:\n            raise ValueError(\"capacity must be >= 1\")\n        if ttl_seconds <= 0:\n            raise ValueError(\"ttl_seconds must be > 0\")\n        self._capacity = capacity\n        self._ttl = ttl_seconds\n        self._clock = clock\n        self._data: \"OrderedDict[Hashable, tuple[Any, float]]\" = OrderedDict()\n\n    def _expired(self, expiry: float) -> bool:\n        return self._clock() >= expiry\n\n    def get(self, key: Hashable, default: Any = None) -> Any:\n        item = self._data.get(key)\n        if item is None:\n            return default\n        value, expiry = item\n        if self._expired(expiry):\n            del self._data[key]\n            return default\n        self._data.move_to_end(key)\n        return value\n\n    def put(self, key: Hashable, value: Any) -> None:\n        if key in self._data:\n            self._data.move_to_end(key)\n        elif len(self._data) >= self._capacity:\n            for k in [k for k, (_, exp) in self._data.items() if self._expired(exp)]:\n                del self._data[k]\n            if len(self._data) >= self._capacity:\n                self._data.popitem(last=False)\n        self._data[key] = (value, self._clock() + self._ttl)\n\n    def __len__(self) -> int:\n        return sum(1 for _, exp in self._data.values() if not self._expired(exp))\n```\n",
+ "usage": {
+  "input_tokens": 2874,
+  "output_tokens": 392,
+  "overhead_tokens": 2600,
+  "cached_tokens": 2600
+ },
+ "latency_ms": 11800
+}

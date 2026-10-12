@@ -1,0 +1,10 @@
+{
+ "text": "```python\ndef is_palindrome(text: str) -> bool:\n    cleaned = [c.lower() for c in text if c.isalnum()]\n    return cleaned == cleaned[::-1]\n```\n",
+ "usage": {
+  "input_tokens": 2678,
+  "output_tokens": 36,
+  "overhead_tokens": 2600,
+  "cached_tokens": 2600
+ },
+ "latency_ms": 2400
+}

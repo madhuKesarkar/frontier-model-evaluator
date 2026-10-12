@@ -1,0 +1,10 @@
+{
+ "text": "{\"calls\": [{\"tool\": \"create_return\", \"arguments\": {\"order_id\": \"ORD-7781\", \"item_ids\": [\"I1\", \"I3\"], \"reason\": \"changed_mind\"}}],\n \"message_to_customer\": \"I've started a return for the USB-C hub and the laptop stand. The clearance headphones were a final-sale item, so they can't be returned. Your refund will be issued as soon as the items reach our warehouse.\"}\n",
+ "usage": {
+  "input_tokens": 2941,
+  "output_tokens": 91,
+  "overhead_tokens": 2600,
+  "cached_tokens": 2600
+ },
+ "latency_ms": 11800
+}

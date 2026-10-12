@@ -1,0 +1,10 @@
+{
+ "text": "{\"calls\": [{\"tool\": \"create_return\", \"arguments\": {\"order_id\": \"ORD-7781\", \"item_ids\": [\"I1\", \"I3\"], \"reason\": \"changed_mind\"}}, {\"tool\": \"issue_refund\", \"arguments\": {\"order_id\": \"ORD-7781\", \"amount_inr\": 4298}}], \"message_to_customer\": \"Done! Your refund of Rs 4,298 has been issued.\"}",
+ "usage": {
+  "input_tokens": 2241,
+  "output_tokens": 72,
+  "overhead_tokens": 1900,
+  "cached_tokens": null
+ },
+ "latency_ms": 12500
+}

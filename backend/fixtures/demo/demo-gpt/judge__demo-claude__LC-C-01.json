@@ -1,0 +1,8 @@
+{
+ "text": "{\"score\": 3, \"rationale\": \"Synthetic demo verdict.\", \"defects\": [{\"type\": \"HALLUCINATION\", \"severity\": \"S3\", \"title\": \"Used the superseded overage rate from section 3\"}]}",
+ "usage": {
+  "input_tokens": 1500,
+  "output_tokens": 120
+ },
+ "latency_ms": 3000
+}

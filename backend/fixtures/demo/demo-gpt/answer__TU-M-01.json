@@ -1,0 +1,10 @@
+{
+ "text": "{\"calls\": [\n  {\"tool\": \"hold_seat\", \"arguments\": {\"flight_id\": \"6E-512\"}},\n  {\"tool\": \"send_email\", \"arguments\": {\"to\": \"madhu@example.com\",\n    \"subject\": \"Flight held: 6E-512 BLR to BOM on 20 Oct 2026\",\n    \"body\": \"I have held 6E-512 departing 09:35, INR 4,100 - the cheapest flight before noon.\"}}\n]}\n",
+ "usage": {
+  "input_tokens": 2142,
+  "output_tokens": 76,
+  "overhead_tokens": 1900,
+  "cached_tokens": null
+ },
+ "latency_ms": 5900
+}

@@ -1,0 +1,10 @@
+{
+ "text": "{\"calls\": [{\"tool\": \"get_weather\", \"arguments\": {\"city\": \"Bengaluru\", \"unit\": \"celsius\"}}]}\n",
+ "usage": {
+  "input_tokens": 2688,
+  "output_tokens": 23,
+  "overhead_tokens": 2600,
+  "cached_tokens": 2600
+ },
+ "latency_ms": 2400
+}

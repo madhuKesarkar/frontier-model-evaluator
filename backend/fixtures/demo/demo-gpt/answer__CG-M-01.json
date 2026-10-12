@@ -1,0 +1,10 @@
+{
+ "text": "```python\nimport re\n\n_PATTERN = re.compile(r\"(?:(\\d+)h)?(?:(\\d+)m)?(?:(\\d+)s)?\")\n\ndef parse_duration(text: str) -> int:\n    value = text.strip()\n    match = _PATTERN.fullmatch(value)\n    if not value or match is None or not any(match.groups()):\n        raise ValueError(f\"invalid duration: {text!r}\")\n    hours, minutes, seconds = (int(g) if g else 0 for g in match.groups())\n    return hours * 3600 + minutes * 60 + seconds\n```\n",
+ "usage": {
+  "input_tokens": 2066,
+  "output_tokens": 107,
+  "overhead_tokens": 1900,
+  "cached_tokens": null
+ },
+ "latency_ms": 5900
+}

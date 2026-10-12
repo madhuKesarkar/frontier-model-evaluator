@@ -1,0 +1,8 @@
+{
+ "text": "{\"score\": 3, \"rationale\": \"Synthetic demo verdict.\", \"defects\": [{\"type\": \"INSTRUCTION_VIOLATION\", \"severity\": \"S3\", \"title\": \"No interaction test between daily cap and scheduling\"}]}",
+ "usage": {
+  "input_tokens": 1500,
+  "output_tokens": 120
+ },
+ "latency_ms": 3000
+}
