@@ -62,7 +62,7 @@ export const api = {
     request<ModelDetail>(`/models/${encodeURIComponent(key)}`, { signal }),
   defects: (
     key: string,
-    p: { severity?: string; type?: string; tier?: string; category?: string },
+    p: { severity?: string; type?: string; tier?: string; category?: string; status?: string },
     signal?: AbortSignal,
   ) => request<DefectList>(`/models/${encodeURIComponent(key)}/defects${query(p)}`, { signal }),
   results: (key: string, signal?: AbortSignal) =>

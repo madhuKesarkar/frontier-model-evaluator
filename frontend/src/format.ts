@@ -26,3 +26,20 @@ export const fmtCost = (v: number | null | undefined) =>
   v == null ? "n/a" : `$${v < 0.01 ? v.toFixed(4) : v.toFixed(3)}`;
 export const fmtMs = (v: number | null | undefined) =>
   v == null ? "n/a" : v >= 1000 ? `${(v / 1000).toFixed(1)} s` : `${v} ms`;
+
+export const DEFECT_TYPES = [
+  "HALLUCINATION",
+  "INSTRUCTION_VIOLATION",
+  "FORMAT_BREAK",
+  "INCORRECT_CODE",
+  "REASONING_ERROR",
+  "TOOL_CALL_ERROR",
+  "OVER_REFUSAL",
+  "UNSAFE_OUTPUT",
+  "TRUNCATION",
+  "TIMEOUT_ERROR",
+  "INCONSISTENCY",
+];
+export const SEVERITIES = ["S1", "S2", "S3", "S4"];
+export const DEFECT_STATUSES = ["open", "confirmed", "false_positive"];
+export const humanize = (s: string) => s.replace(/_/g, " ").toLowerCase();

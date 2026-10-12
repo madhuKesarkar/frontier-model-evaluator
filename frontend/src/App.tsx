@@ -3,6 +3,8 @@ import { NavLink, Route, Routes } from "react-router-dom";
 import { BackendStatus } from "./components/BackendStatus";
 import { FitPage } from "./pages/FitPage";
 import { LeaderboardPage } from "./pages/LeaderboardPage";
+import { ModelDetailPage } from "./pages/ModelDetailPage";
+import { ResultPage } from "./pages/ResultPage";
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
   `rounded px-3 py-1.5 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 ${
@@ -29,6 +31,8 @@ export function App() {
       <main className="mx-auto max-w-6xl space-y-6 px-6 py-6">
         <Routes>
           <Route path="/" element={<LeaderboardPage />} />
+          <Route path="/models/:key" element={<ModelDetailPage />} />
+          <Route path="/results/:id" element={<ResultPage />} />
           <Route path="/fit" element={<FitPage />} />
           <Route path="*" element={<p>Page not found.</p>} />
         </Routes>
