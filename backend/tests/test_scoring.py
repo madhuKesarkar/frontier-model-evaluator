@@ -17,7 +17,7 @@ def model(key: str, provider: str) -> ModelEntry:
     )  # fmt: skip
 
 
-CLAUDE, GPT, GEMINI = model("c", "anthropic"), model("g", "openai"), model("m", "google")
+CLAUDE, GPT = model("c", "anthropic"), model("g", "openai")
 
 
 def test_BE_AC16_cost_formula_exact() -> None:
@@ -58,14 +58,15 @@ def test_no_judge_task_ignores_judge() -> None:
     assert final_score(5, judge_score=None, uses_judge=False) == (5, False)
 
 
-@pytest.mark.parametrize("candidate", [CLAUDE, GPT, GEMINI])
+@pytest.mark.parametrize("candidate", [CLAUDE, GPT])
 def test_BE_AC11_judge_is_never_from_the_candidates_provider(candidate: ModelEntry) -> None:
-    judge = pick_judge(candidate.provider, [CLAUDE, GPT, GEMINI])
+    judge = pick_judge(candidate.provider, [CLAUDE, GPT])
     assert judge.provider != candidate.provider
 
 
-def test_rotation_falls_back_to_next_provider() -> None:
-    assert pick_judge(CLAUDE.provider, [CLAUDE, GEMINI]) is GEMINI
+def test_D17_claude_and_gpt_judge_each_other() -> None:
+    assert pick_judge(CLAUDE.provider, [CLAUDE, GPT]) is GPT
+    assert pick_judge(GPT.provider, [CLAUDE, GPT]) is CLAUDE
 
 
 def test_no_other_provider_ready_raises() -> None:

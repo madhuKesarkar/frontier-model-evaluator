@@ -10,10 +10,11 @@ from app.checkers import extract_json
 from app.registry import ModelEntry, Provider
 from app.suite import Task
 
-#: BE-R12 fixed rotation: a result from provider X is judged by the next provider.
+#: BE-R12 (D-17): each provider is judged by the other one. Google is Post-MVP; if it
+#: is ever configured, it is judged by Anthropic, then OpenAI.
 ROTATION = {
-    Provider.ANTHROPIC: [Provider.OPENAI, Provider.GOOGLE],
-    Provider.OPENAI: [Provider.GOOGLE, Provider.ANTHROPIC],
+    Provider.ANTHROPIC: [Provider.OPENAI],
+    Provider.OPENAI: [Provider.ANTHROPIC],
     Provider.GOOGLE: [Provider.ANTHROPIC, Provider.OPENAI],
 }
 DEFECT_TYPES = {

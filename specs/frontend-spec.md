@@ -28,7 +28,7 @@ The frontend talks only to the local backend at `http://localhost:8000/api/v1`. 
 ## 3. Navigation
 A top navigation bar shows: **Leaderboard** (home) · **Fit for my app**. *(Post-MVP adds Compare, Runs, Review queue, History.)*
 
-A persistent **fairness note** appears on the Leaderboard, Model detail and Compare screens: *"Models are compared as reached through each access mode (Claude via Claude Code on Pro, GPT via Codex on Go, Gemini Flash on the free tier), not as flagship paid APIs. Token counts use different tokenizers; compare API-equivalent cost instead."*
+A persistent **fairness note** appears on the Leaderboard, Model detail and Compare screens: *"Models are compared as reached through each access mode (Claude via Claude Code on Pro, GPT via Codex on Go), not as flagship paid APIs. Token counts use different tokenizers; compare API-equivalent cost instead."*
 
 ## 4. Screens
 
