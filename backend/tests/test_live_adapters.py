@@ -207,3 +207,13 @@ def test_missing_cli_is_not_ready(monkeypatch: pytest.MonkeyPatch) -> None:
     with pytest.raises(AdapterError) as exc:
         CodexAdapter("gpt-6-luna").complete(PROMPT, request_id="answer:X")
     assert exc.value.kind == ErrorKind.NOT_READY
+
+
+def test_codex_parses_real_recorded_output() -> None:
+    fake = FakeExec((FIXTURES / "codex_ok.jsonl").read_text())
+    reply = CodexAdapter("gpt-6-luna", fake).complete(PROMPT, request_id="answer:X")
+    assert reply.text == "Hello!"
+    u = reply.usage
+    assert (u.input_tokens, u.cached_tokens, u.output_tokens) == (13487, 11008, 6)
+    assert u.reasoning_tokens is None  # 0 reported: not shown as a fake 0
+    assert u.overhead_tokens == 13487 - estimate_tokens(PROMPT)  # Codex's own instructions

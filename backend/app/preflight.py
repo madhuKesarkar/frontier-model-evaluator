@@ -63,6 +63,9 @@ def check_claude(exec_: Exec = run_process, home: Path | None = None) -> Check:
             f"Claude Code is signed in with '{method}', not the Claude Pro subscription. "
             "Run `claude`, /login, and choose the Claude account with subscription.",
         )
+    plan = str(status.get("subscriptionType", "")).lower()
+    if plan and plan not in {"pro", "max"}:
+        return Check(mode, False, f"Claude Code subscription is '{plan}', expected Pro (or Max)")
     warnings = []
     memory = (home or Path.home()) / ".claude" / "CLAUDE.md"
     if memory.exists():
@@ -70,7 +73,8 @@ def check_claude(exec_: Exec = run_process, home: Path | None = None) -> Check:
             f"{memory} exists: Claude Code adds it to every prompt, so it shows up as "
             "overhead tokens and may influence answers. Consider moving it aside for the run."
         )
-    return Check(mode, True, f"{version}, signed in with the subscription ({method})", warnings)
+    label = f"Claude {plan.title()}" if plan else method
+    return Check(mode, True, f"{version}, signed in with the subscription ({label})", warnings)
 
 
 def check_codex(exec_: Exec = run_process) -> Check:

@@ -12,7 +12,11 @@ from app.adapters.cli import CliResult
 from app.preflight import check_claude, check_codex, preflight
 from app.registry import ModelEntry
 
-CLAUDE_OK = json.dumps({"loggedIn": True, "authMethod": "claude.ai", "apiProvider": "firstParty"})
+# Shape of the architect's real `claude auth status` (2026-10-12), personal fields left out.
+CLAUDE_OK = json.dumps(
+    {"loggedIn": True, "authMethod": "claude.ai", "apiProvider": "firstParty",
+     "subscriptionType": "pro"}
+)  # fmt: skip
 MODEL_COMMANDS = {"-p", "exec"}  # any of these would be a model call
 
 
@@ -45,7 +49,7 @@ def codex_outputs(status: str = "Logged in using ChatGPT") -> dict[str, tuple[in
 def test_claude_ready_with_subscription(tmp_path: Path) -> None:
     check = check_claude(fake(claude_outputs()), home=tmp_path)
     assert check.ready, check.reason
-    assert "2.1.296" in check.reason
+    assert "2.1.296" in check.reason and "Claude Pro" in check.reason
     assert check.warnings == []
 
 
@@ -112,3 +116,9 @@ def test_preflight_skips_fixture_models() -> None:
     exec_ = fake({})
     assert preflight([entry("demo", "fixture")], exec_, env={}) == []
     assert exec_.calls == []
+
+
+def test_claude_free_plan_is_not_ready(tmp_path: Path) -> None:
+    status = json.dumps({"loggedIn": True, "authMethod": "claude.ai", "subscriptionType": "free"})
+    check = check_claude(fake(claude_outputs(status)), home=tmp_path)
+    assert not check.ready and "free" in check.reason
