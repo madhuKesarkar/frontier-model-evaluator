@@ -26,7 +26,7 @@ from app.aggregates import summarize_model
 from app.db import Run, make_engine, make_session_factory
 from app.registry import AccessMode, ModelEntry, load_registry
 from app.runner import EvaluationRunner, RunConfig
-from app.sandbox import DockerSandbox
+from app.sandbox import DockerSandbox, SandboxUnavailable
 from app.settings import REPO_ROOT, Settings, assert_no_paid_keys
 from app.suite import load_suite, validate_suite
 
@@ -110,9 +110,14 @@ def main(argv: list[str] | None = None) -> int:
     if problems:
         raise CliError("suite is invalid: " + "; ".join(problems))
     adapters = build_adapters(registry, args.fixtures)
-    runner = EvaluationRunner(
-        sessions, registry, tasks, adapters, DockerSandbox(settings.sandbox_image)
-    )
+    try:
+        sandbox = DockerSandbox(settings.sandbox_image)
+        sandbox.check()  # before any model call: a dead sandbox must not cost quota
+    except SandboxUnavailable as exc:
+        raise CliError(
+            f"Docker sandbox not ready ({exc}). Start Docker Desktop and run `make sandbox`."
+        ) from exc
+    runner = EvaluationRunner(sessions, registry, tasks, adapters, sandbox)
     if args.cmd == "run":
         recorded = args.fixtures is not None or any(
             m.access_mode == AccessMode.FIXTURE for m in registry if m.key in args.models
@@ -129,6 +134,9 @@ def main(argv: list[str] | None = None) -> int:
     with sessions() as s:
         run = s.get(Run, run_id)
         print(f"Run {run_id} finished with status: {run.status if run else '?'}")
+        if run and run.status == "error":
+            print(f"Stopped: {runner.last_error}. Fix it, then: python -m app.eval resume {run_id}")
+            return 1
     return 0
 
 
