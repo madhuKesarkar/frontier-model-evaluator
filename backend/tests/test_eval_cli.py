@@ -107,3 +107,35 @@ def test_cli_refuses_paid_key(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
     with pytest.raises(Exception, match="not allowed"):
         cli.main(["summary"])
+
+
+def test_cli_calibrate_writes_report_and_fails_honestly(
+    demo_env: str, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    import json
+
+    from app.calibration import load_sets
+    from app.judge import judge_output_json
+
+    golden, seeded, _ = load_sets(REPO_ROOT / "suite/calibration")
+    fixtures = tmp_path / "calib"
+    for judge, seeded_score in (("demo-claude", 1), ("demo-gpt", 4)):  # demo-gpt misses all
+        d = fixtures / judge
+        d.mkdir(parents=True)
+        for g in golden:
+            (d / f"judge__{judge}__calib__{g.id}.json").write_text(
+                json.dumps({"text": judge_output_json(g.human_score)})
+            )
+        for s in seeded:
+            (d / f"judge__{judge}__calib__{s.id}.json").write_text(
+                json.dumps({"text": judge_output_json(seeded_score)})
+            )
+    report = tmp_path / "calibration.json"
+    code = cli.main(["calibrate", "--fixtures", str(fixtures), "--report", str(report)])
+    assert code == 1  # one judge failed SM-4, so the check fails
+    data = json.loads(report.read_text())
+    by_judge = {j["judge"]: j for j in data["judges"]}
+    assert by_judge["demo-claude"]["passed"] and by_judge["demo-claude"]["catch_rate"] == 1.0
+    assert not by_judge["demo-gpt"]["passed"] and by_judge["demo-gpt"]["catch_rate"] == 0.0
+    assert data["source"] == "recorded"
+    assert "catch rate 0% (SM-4) -> FAIL" in capsys.readouterr().out
