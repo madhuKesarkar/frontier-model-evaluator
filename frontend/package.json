@@ -5,24 +5,32 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run typecheck && vite build",
     "preview": "vite preview",
     "lint": "eslint . --max-warnings 0 && prettier --check .",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
+    "test": "vitest run",
+    "gen:api": "openapi-typescript ../backend/openapi.json -o src/api/schema.d.ts",
+    "e2e": "playwright test",
+    "check:api": "node scripts/check-api-types.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "5.80.6",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "react-router-dom": "7.18.4",
+    "recharts": "3.10.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@eslint/js": "10.0.1",
+    "@playwright/test": "1.56.0",
     "@tailwindcss/vite": "4.1.8",
     "@testing-library/jest-dom": "6.6.3",
     "@testing-library/react": "16.3.0",
     "@testing-library/user-event": "14.6.1",
+    "@types/node": "22.15.30",
     "@types/react": "19.1.6",
     "@types/react-dom": "19.1.6",
     "@vitejs/plugin-react": "4.5.1",
@@ -31,11 +39,15 @@
     "eslint-plugin-react-refresh": "0.5.7",
     "globals": "16.2.0",
     "jsdom": "26.1.0",
+    "openapi-typescript": "7.13.0",
     "prettier": "3.5.3",
     "tailwindcss": "4.1.8",
     "typescript": "5.8.3",
     "typescript-eslint": "8.71.1",
     "vite": "6.3.5",
     "vitest": "3.2.2"
+  },
+  "overrides": {
+    "playwright-core": "1.56.0"
   }
 }

@@ -30,6 +30,7 @@ from app.judge import (
     pick_judge,
 )
 from app.registry import ModelEntry
+from app.sandbox import SandboxUnavailable
 from app.scoring import deterministic_score, final_score
 from app.suite import Task
 
@@ -92,6 +93,7 @@ class EvaluationRunner:
         self.sleep = sleep
         self._calls_made = 0
         self._call_cap = 0
+        self.last_error: str | None = None  # why the last run stopped with status error
 
     # ------------------------------------------------------------------ public API
     def start(self, config: RunConfig) -> int:
@@ -188,13 +190,18 @@ class EvaluationRunner:
                     result.status = "paused_quota"  # no defect: not the model's fault
                 except CapReached:
                     status = "stopped_cap"  # this Result stays pending for a resume
+                except SandboxUnavailable as exc:
+                    # Harness failure, not a model defect (BE-R3, BE-R10): nothing is scored,
+                    # this Result stays pending and the run can be resumed once Docker is back.
+                    status = "error"
+                    self.last_error = f"sandbox unavailable: {exc}"
                 run = _require(s.get(Run, result.run_id), "Run")
                 run.calls_made = self._calls_made  # outside the savepoint: real calls count
-            if status == "stopped_cap":
+            if status in {"stopped_cap", "error"}:
                 break
         with self.sessions.begin() as s:
             run = _require(s.get(Run, run_id), "Run")
-            if status != "stopped_cap" and any(r.status == "paused_quota" for r in run.results):
+            if status == "completed" and any(r.status == "paused_quota" for r in run.results):
                 status = "paused_quota"
             run.status = status
             run.api_equiv_cost_usd = round(sum(r.api_equiv_cost_usd or 0.0 for r in run.results), 6)

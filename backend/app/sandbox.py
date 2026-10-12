@@ -19,8 +19,13 @@ TIME_LIMIT_S = 10  # D-10
 MEMORY_LIMIT = "512m"  # D-10
 
 
+# Messages the docker CLI prints when it cannot reach the daemon. The CLI then exits
+# with 1, the same code as a failing pytest, so the exit code alone can't tell them apart.
+DAEMON_DOWN_MARKERS = ("Cannot connect to the Docker daemon", "error during connect")
+
+
 class SandboxUnavailable(RuntimeError):
-    pass
+    """The sandbox itself failed (daemon down, image missing): never the model's fault."""
 
 
 class DockerSandbox:
@@ -29,6 +34,18 @@ class DockerSandbox:
             raise SandboxUnavailable("docker is not installed")
         self.image = image
         self.time_limit_s = time_limit_s
+
+    def check(self) -> None:
+        """Fail fast before a run: the daemon must answer and the image must exist."""
+        cmd = ["docker", "image", "inspect", "--format", "{{.Id}}", self.image]
+        proc = subprocess.run(  # noqa: S603 - fixed argv, no shell
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if proc.returncode != 0:
+            raise SandboxUnavailable(proc.stderr.strip()[-500:] or "docker image inspect failed")
 
     def run_tests(self, solution: str, tests: str) -> RunResult:
         name = f"fme-sbx-{uuid.uuid4().hex[:12]}"
@@ -60,7 +77,8 @@ class DockerSandbox:
                 subprocess.run(["docker", "kill", name], capture_output=True)  # noqa: S603, S607
                 partial = exc.stdout if isinstance(exc.stdout, str) else ""
                 return RunResult(False, partial + f"\nKilled after {self.time_limit_s}s", True)
-            if proc.returncode == 125:  # docker itself failed (image missing, daemon down)
+            if proc.returncode == 125 or any(m in proc.stderr for m in DAEMON_DOWN_MARKERS):
+                # docker itself failed (image missing, daemon down): not a test result
                 raise SandboxUnavailable(proc.stderr.strip()[-500:])
             out = (proc.stdout + proc.stderr).strip()
             if proc.returncode == 137:

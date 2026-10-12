@@ -17,6 +17,7 @@ from app.db import Base, Defect, JudgeScore, Result, Run, make_engine, make_sess
 from app.judge import judge_output_json
 from app.registry import ModelEntry
 from app.runner import EvaluationRunner, RunConfig, RunConflict
+from app.sandbox import SandboxUnavailable
 from app.settings import REPO_ROOT
 from app.suite import Task, load_suite
 
@@ -275,3 +276,40 @@ def test_inconsistent_repeats_create_inconsistency_defect(sessions: sessionmaker
     with sessions() as s:
         types = sorted(d.type for d in s.scalars(select(Defect)))
     assert types == ["INCONSISTENCY", "REASONING_ERROR"]
+
+
+class FlakySandbox:
+    """Unavailable for the first `down` calls, then passes (Docker restarted)."""
+
+    def __init__(self, down: int) -> None:
+        self.down = down
+
+    def run_tests(self, solution: str, tests: str) -> RunResult:
+        if self.down > 0:
+            self.down -= 1
+            raise SandboxUnavailable("Cannot connect to the Docker daemon")
+        return RunResult(True, "1 passed")
+
+
+def test_sandbox_down_stops_run_without_model_defects_and_resumes(
+    sessions: sessionmaker[Session],
+) -> None:
+    tasks = [t for t in SUITE if t.category == "code_generation"]
+    answers = {f"answer:{t.task_id}": [ok(t.reference_response)] * 2 for t in tasks}
+    claude = FixtureAdapter(answers)
+    gpt = FixtureAdapter(perfect_scripts(tasks, judged_model="claude"))
+    runner = EvaluationRunner(
+        sessions, [CLAUDE, GPT], tasks, {"claude": claude, "gpt": gpt}, FlakySandbox(down=1),
+        sleep=lambda _: None,
+    )  # fmt: skip
+    run_id = runner.start(RunConfig(model_keys=["claude"], call_cap=100))
+
+    assert get_run(sessions, run_id).status == "error"
+    assert runner.last_error and "Docker daemon" in runner.last_error
+    assert {r.status for r in results(sessions, run_id)} == {"pending"}
+    with sessions() as s:
+        assert list(s.scalars(select(Defect))) == []  # not the model's fault
+
+    runner.resume(run_id)
+    assert get_run(sessions, run_id).status == "completed"
+    assert all(r.status == "scored" and r.score == 5 for r in results(sessions, run_id))

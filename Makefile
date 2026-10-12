@@ -5,7 +5,7 @@ SHELL := /bin/bash
 VENV  := backend/.venv/bin
 PY    := $(VENV)/python
 
-.PHONY: help setup dev dev-backend dev-frontend lint test ac-check ac-check-strict check sandbox migrate eval demo-data summary openapi api
+.PHONY: help setup dev dev-backend dev-frontend lint test ac-check ac-check-strict check sandbox migrate eval demo-data summary openapi api e2e
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -56,3 +56,10 @@ ac-check-strict: ## Fail if any demo acceptance criterion has no test
 	@$(PY) scripts/ac_check.py --strict
 
 check: lint test ac-check ## Everything CI runs
+
+e2e: ## Browser tests (Playwright + axe) on a fresh SYNTHETIC demo database; needs Docker and `make sandbox`
+	rm -f e2e.db
+	cd backend && FME_DATABASE_URL=sqlite:///$(CURDIR)/e2e.db .venv/bin/python -m app.eval migrate
+	cd backend && FME_DATABASE_URL=sqlite:///$(CURDIR)/e2e.db FME_MODELS_FILE=../config/models.demo.yaml \
+		.venv/bin/python -m app.eval run --models demo-claude demo-gpt --call-cap 100 --label synthetic-demo
+	cd frontend && FME_E2E_DB=$(CURDIR)/e2e.db npx playwright test
