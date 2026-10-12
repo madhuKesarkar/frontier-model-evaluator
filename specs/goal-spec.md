@@ -147,7 +147,8 @@ v1 is a single-user tool run by the owner on her own computer.
 | D-16 | 2026-10-12 | **Combined scoring:** for tasks with both automated checks and a judge, final score = the lower of the judge's score and the automated-check score (BE-R14). | backend |
 | D-18 | 2026-10-12 | **S1 blocking rule for the demo:** any S1 defect that is not marked false positive (open or confirmed) in a must-have category makes the verdict Not recommended, because the review UI is Post-MVP (BE-R25). | backend |
 | D-19 | 2026-10-12 | **Fit templates** as proposed in backend-spec §9.1 (Test-case generation tool, Customer support chatbot, Code assistant); editable later. | backend, frontend |
+| D-20 | 2026-10-12 | **Models (resolves OQ-2):** each plan's default. Claude: `claude-sonnet-5` via Claude Code 2.1.296 on Claude Pro. GPT: `gpt-6-luna` via Codex CLI 0.162.1 on ChatGPT Go, default reasoning effort. Confirmed on the architect's Mac (`claude auth status`: claude.ai / pro; `codex login status`: ChatGPT). Golden labels (6) approved unchanged. | goal, backend |
 | D-17 | 2026-10-12 | **Two providers only:** Claude (Claude Code on Pro) and ChatGPT (Codex on Go). Gemini moves to Post-MVP. Each provider's results are judged by the other. **Supersedes D-1** and the Gemini part of D-2. | all |
 
 ### Open questions
-- OQ-2 `[NEEDS CLARIFICATION]` Exact model per provider, confirmed at the first live run (G4): which Claude model in Claude Code, and which GPT model Codex uses on Go.
+- ~~OQ-2~~ Resolved by D-20.
