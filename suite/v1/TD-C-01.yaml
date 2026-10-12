@@ -1,0 +1,59 @@
+task_id: TD-C-01
+version: 1
+category: test_design
+tier: complex
+title: Boundary and risk-based tests for a fund-transfer rule set
+prompt: |
+  You are the QA lead for a banking app's domestic fund-transfer feature. Requirements:
+
+  R1. Transfer amount must be between ₹1 and ₹2,00,000 (inclusive) per transaction.
+  R2. A customer's total transfers per calendar day must not exceed ₹5,00,000.
+  R3. Transfers above ₹50,000 require an OTP; the OTP is valid for 3 minutes and 3 attempts.
+  R4. Transfers created after 22:00 IST on a bank holiday or weekend are scheduled for the next
+      working day at 09:00 IST; other transfers are immediate.
+  R5. A new payee can receive at most ₹25,000 in the first 24 hours after being added.
+  R6. Insufficient balance must be rejected before any OTP is sent.
+
+  Produce a risk-ordered test plan as a Markdown table with the columns
+  | ID | Requirement | Test idea | Input / data | Expected result | Risk (High/Medium/Low) |
+  Include boundary values for every numeric limit, at least one negative test per requirement,
+  and at least one test where two requirements interact. Order rows from highest to lowest risk.
+  Return only the table.
+checkers:
+  - type: regex
+    pattern: "\\|\\s*ID\\s*\\|\\s*Requirement\\s*\\|\\s*Test idea\\s*\\|\\s*Input / data\\s*\\|\\s*Expected result\\s*\\|\\s*Risk"
+    on_fail: {type: FORMAT_BREAK, severity: S3}
+  - type: llm_judge
+    on_fail: {type: INSTRUCTION_VIOLATION, severity: S2}
+rubric: |
+  Score against these must-haves:
+  a) boundaries for R1 (₹0/₹1 and ₹2,00,000/₹2,00,001); b) R2 daily cap crossed by a cumulative
+  transfer (e.g. 4,90,000 + 20,000); c) R3 at ₹50,000 (no OTP) vs ₹50,001 (OTP), OTP expiry at
+  3 minutes and the 4th attempt; d) R4 at 21:59 vs 22:00 on a holiday/weekend, and a weekday at
+  22:30 (immediate); e) R5 new payee at ₹25,000 vs ₹25,001 within 24h and after 24h;
+  f) R6 insufficient balance rejected with no OTP sent; g) at least one interaction test
+  (e.g. new payee + OTP threshold, or daily cap + scheduled transfer); h) rows ordered by risk with
+  money-movement/security risks first. No invented requirements; expectations must match the rules.
+  5 = all of a–h; 4 = 7; 3 = 5–6; 2 = 3–4 or any wrong expectation on a money rule; 1 = unusable.
+reference_response: |
+  | ID | Requirement | Test idea | Input / data | Expected result | Risk (High/Medium/Low) |
+  |---|---|---|---|---|---|
+  | F1 | R6 | Insufficient balance | Balance ₹10,000, transfer ₹60,000 | Rejected; no OTP sent | High |
+  | F2 | R5+R3 | New payee above cap and OTP threshold | New payee (1h old), ₹60,000 | Rejected by payee cap before OTP | High |
+  | F3 | R5 | New payee at cap | New payee (1h old), ₹25,000 | Allowed | High |
+  | F4 | R5 | New payee above cap | New payee (23h59m old), ₹25,001 | Rejected | High |
+  | F5 | R5 | Cap lifts after 24h | Payee 24h old, ₹25,001 | Allowed | High |
+  | F6 | R2 | Daily cap crossed cumulatively | Sent ₹4,90,000 today, now ₹20,000 | Rejected | High |
+  | F7 | R2 | Exactly at daily cap | Sent ₹4,90,000, now ₹10,000 | Allowed | High |
+  | F8 | R3 | OTP threshold | ₹50,000 | No OTP | High |
+  | F9 | R3 | OTP threshold +1 | ₹50,001 | OTP required | High |
+  | F10 | R3 | OTP expiry | Enter OTP at 3m01s | Rejected, transfer not made | High |
+  | F11 | R3 | 4th OTP attempt | 3 wrong OTPs then correct | Rejected | High |
+  | F12 | R1 | Max amount | ₹2,00,000 | Allowed | Medium |
+  | F13 | R1 | Above max | ₹2,00,001 | Rejected | Medium |
+  | F14 | R1 | Min amount | ₹1 | Allowed | Medium |
+  | F15 | R1 | Zero amount | ₹0 | Rejected | Medium |
+  | F16 | R4 | Holiday at 22:00 | Saturday 22:00 IST | Scheduled for Monday 09:00 | Medium |
+  | F17 | R4 | Holiday at 21:59 | Saturday 21:59 IST | Immediate | Medium |
+  | F18 | R4 | Weekday late | Wednesday 22:30 IST (working day) | Immediate | Low |
+  | F19 | R2+R4 | Scheduled transfer and daily cap | Holiday 22:30 ₹1,00,000 scheduled; next day already ₹4,50,000 | Counted on next working day; rejected if cap exceeded | Medium |

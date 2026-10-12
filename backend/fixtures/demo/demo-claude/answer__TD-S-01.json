@@ -1,0 +1,10 @@
+{
+ "text": "| ID | Input | Expected | Reason |\n|---|---|---|---|\n| T1 | 560001 | true | Valid 6-digit PIN |\n| T2 | 100000 | true | Smallest valid PIN |\n| T3 | 999999 | true | Largest valid PIN |\n| T4 | 012345 | false | Starts with 0 |\n| T5 | 56000 | false | Only 5 digits |\n| T6 | 5600011 | false | 7 digits |\n| T7 | 56A001 | false | Contains a letter |\n| T8 | 560 001 | false | Contains a space |\n| T9 | (empty) | false | Empty input |\n",
+ "usage": {
+  "input_tokens": 2684,
+  "output_tokens": 106,
+  "overhead_tokens": 2600,
+  "cached_tokens": 2600
+ },
+ "latency_ms": 2400
+}

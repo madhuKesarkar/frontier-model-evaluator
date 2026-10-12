@@ -1,0 +1,8 @@
+{
+ "text": "{\"score\": 3, \"rationale\": \"Synthetic demo verdict.\", \"defects\": [{\"type\": \"REASONING_ERROR\", \"severity\": \"S3\", \"title\": \"Field removal classified as a fix, not breaking\"}]}",
+ "usage": {
+  "input_tokens": 1500,
+  "output_tokens": 120
+ },
+ "latency_ms": 3000
+}

@@ -1,0 +1,127 @@
+task_id: LC-C-01
+version: 1
+category: long_context
+tier: complex
+title: Service handbook with an amendment, a combination and a missing fact
+prompt: |
+  Answer using ONLY the document below. Later amendments override earlier text. If the document
+  does not contain the answer, answer NOT_IN_DOCUMENT.
+  Return only a JSON object: {"q1": "...", "q2": "...", "q3": "...", "q4": "..."}
+
+  Document — TestGrid Cloud: Customer Service Handbook (version 7)
+
+  1. About this handbook
+  This handbook describes the plans, limits, support commitments and data practices of TestGrid
+  Cloud, a hosted service for running automated browser and mobile tests. It applies to all
+  customers from 1 January 2026 unless a signed order form says otherwise. Where an order form and
+  this handbook disagree, the order form wins. Section 11 lists amendments made after publication;
+  an amendment replaces the text it refers to.
+
+  2. Plans
+  TestGrid Cloud offers three plans. Starter includes 5 parallel sessions and 1,000 test minutes per
+  month. Growth includes 25 parallel sessions and 20,000 test minutes per month. Enterprise includes
+  a negotiated number of parallel sessions and unlimited test minutes. All plans include access to
+  every browser and operating-system combination listed on the status page. Plans renew monthly on
+  the date of first purchase. Annual billing is available for Growth and Enterprise at a 15%
+  discount on the monthly list price.
+
+  3. Overage
+  Starter customers cannot exceed their parallel-session limit; additional sessions are queued.
+  Growth customers may exceed their limit by up to 10 sessions. Each extra parallel session is
+  charged at USD 0.40 per session-hour, measured in one-minute increments. Test minutes beyond the
+  monthly allowance are charged at USD 0.02 per minute on Starter and USD 0.012 per minute on
+  Growth. Enterprise customers have no overage charges for minutes; parallel-session overage is
+  defined in their order form.
+
+  4. Session limits
+  A single test session may run for at most 2 hours on Starter and 6 hours on Growth and
+  Enterprise. Sessions idle for more than 10 minutes are ended automatically on every plan. Each
+  session is allocated 4 GB of memory for browser tests and 6 GB for real-device mobile tests.
+
+  5. Real devices
+  Real Android and iOS devices are available on Growth and Enterprise. A device is reset to factory
+  state after each session: apps are uninstalled, accounts are signed out and storage is wiped.
+  Customers may reserve a dedicated device pool on Enterprise only.
+
+  6. Support
+  Starter customers receive email support with a first response within 2 business days.
+  Growth customers receive email and chat support with a first response within 8 business hours.
+  Enterprise customers receive 24×7 support with a first response within 1 hour for Priority 1
+  incidents and 4 hours for Priority 2 incidents. Priority 1 means the service is unavailable or
+  unusable for all users of the customer; Priority 2 means a major feature is unavailable for some
+  users. Business hours are 09:00 to 18:00 in the customer's billing time zone, Monday to Friday,
+  excluding public holidays in that time zone.
+
+  7. Availability
+  TestGrid Cloud targets 99.9% monthly availability for Growth and 99.95% for Enterprise. If
+  availability falls below the target, Growth customers receive a service credit of 10% of the
+  monthly fee, and Enterprise customers receive 10% for each full 0.1 percentage point below the
+  target, up to 50%. Credits must be requested within 30 days of the end of the affected month.
+  Scheduled maintenance announced at least 72 hours in advance does not count as downtime.
+
+  8. Data
+  Test logs, screenshots and videos are stored in the region selected at sign-up (US, EU or India).
+  Screenshots and videos are kept for 30 days on Starter, 90 days on Growth and 180 days on
+  Enterprise, and then deleted. Customers can download their data at any time through the API.
+  TestGrid Cloud never uses customer test data to train machine-learning models.
+
+  9. Security
+  All traffic is encrypted with TLS 1.2 or higher. Data at rest is encrypted with AES-256.
+  Enterprise customers can enable single sign-on through SAML 2.0 and restrict access by IP range.
+  TestGrid Cloud completes an independent SOC 2 Type II audit every year.
+
+  10. Cancellation
+  Monthly plans can be cancelled at any time and remain active until the end of the paid period.
+  Annual plans can be cancelled with 60 days' written notice before the renewal date; fees already
+  paid are not refunded.
+
+  11. Amendments
+  11.1 (effective 1 May 2026) Section 3 is amended: the Growth parallel-session overage charge is
+  USD 0.30 per session-hour, measured in one-minute increments.
+  11.2 (effective 1 June 2026) Section 8 is amended: screenshots and videos on Growth are kept for
+  60 days.
+
+  q1: In July 2026, a Growth customer runs 5 extra parallel sessions for 2 full hours beyond their
+      limit. What is the overage charge in USD? (number only, 2 decimals)
+  q2: In July 2026, for how many days are Growth screenshots kept? (number only)
+  q3: What is the first-response time for a Priority 2 incident on Enterprise, in hours? (number only)
+  q4: How long are audit logs of user sign-ins kept for Enterprise customers?
+checkers:
+  - type: json_schema
+    on_fail: {type: FORMAT_BREAK, severity: S2}
+    schema:
+      type: object
+      required: [q1, q2, q3, q4]
+      properties:
+        q1: {type: [string, number]}
+        q2: {type: [string, number]}
+        q3: {type: [string, number]}
+        q4: {type: string}
+  - type: exact_match
+    extract: {json_pointer: "/q1"}
+    expected: "3.00"
+    numeric: true
+    on_fail: {type: REASONING_ERROR, severity: S2}
+  - type: exact_match
+    extract: {json_pointer: "/q2"}
+    expected: "60"
+    numeric: true
+    on_fail: {type: HALLUCINATION, severity: S2}
+  - type: exact_match
+    extract: {json_pointer: "/q3"}
+    expected: "4"
+    numeric: true
+    on_fail: {type: HALLUCINATION, severity: S2}
+  - type: exact_match
+    extract: {json_pointer: "/q4"}
+    expected: "NOT_IN_DOCUMENT"
+    on_fail: {type: HALLUCINATION, severity: S1}
+  - type: llm_judge
+    on_fail: {type: HALLUCINATION, severity: S3}
+rubric: |
+  Expected answers: q1 = 3.00 (amendment 11.1: 5 sessions × 2 h × USD 0.30, not the original 0.40);
+  q2 = 60 (amendment 11.2); q3 = 4; q4 = NOT_IN_DOCUMENT (the document covers screenshots/videos,
+  not sign-in audit logs). Judge faithfulness: 5 if all four are right and nothing is invented;
+  deduct heavily for using superseded text or inventing a retention period for q4.
+reference_response: |
+  {"q1": "3.00", "q2": "60", "q3": "4", "q4": "NOT_IN_DOCUMENT"}

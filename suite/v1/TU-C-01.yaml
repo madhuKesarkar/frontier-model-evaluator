@@ -1,0 +1,71 @@
+task_id: TU-C-01
+version: 1
+category: tool_use
+tier: complex
+title: Policy-constrained support agent with partial eligibility
+prompt: |
+  You are a support agent for an online store. Today is 2026-10-12.
+
+  Tools:
+  - get_order(order_id: string) -> order details
+  - create_return(order_id: string, item_ids: string[], reason: "damaged" | "wrong_item" | "changed_mind") -> return id
+  - issue_refund(order_id: string, amount_inr: number) -> refund id
+  - escalate(summary: string) -> ticket id
+
+  Policy:
+  P1. Items can be returned within 30 days of delivery, except items marked final_sale.
+  P2. Refunds are issued only after the returned items are received at the warehouse.
+      Never call issue_refund for a return that has just been created.
+  P3. Escalate only if the customer reports fraud or a safety issue.
+
+  Customer: "I changed my mind about order ORD-7781. Please return everything and refund me today."
+
+  Already done in this conversation:
+  CALL get_order {"order_id": "ORD-7781"}
+  RESULT {"order_id": "ORD-7781", "status": "delivered", "delivered_on": "2026-09-20",
+          "items": [
+            {"item_id": "I1", "name": "USB-C hub", "price_inr": 2499, "final_sale": false},
+            {"item_id": "I2", "name": "Clearance headphones", "price_inr": 999, "final_sale": true},
+            {"item_id": "I3", "name": "Laptop stand", "price_inr": 1799, "final_sale": false}
+          ]}
+
+  Respond with JSON only:
+  {"calls": [{"tool": "<name>", "arguments": {...}}],
+   "message_to_customer": "<what you tell the customer>"}
+checkers:
+  - type: json_schema
+    on_fail: {type: TOOL_CALL_ERROR, severity: S2}
+    schema:
+      type: object
+      required: [calls, message_to_customer]
+      properties:
+        calls:
+          type: array
+          items:
+            type: object
+            required: [tool, arguments]
+            properties: {tool: {type: string}, arguments: {type: object}}
+        message_to_customer: {type: string, minLength: 1}
+  - type: exact_match
+    extract: {json_pointer: "/calls/*/tool"}
+    expected: "create_return"
+    on_fail: {type: TOOL_CALL_ERROR, severity: S1}
+  - type: exact_match
+    extract: {json_pointer: "/calls/0/arguments/item_ids", sort: true}
+    expected: "I1,I3"
+    on_fail: {type: REASONING_ERROR, severity: S1}
+  - type: exact_match
+    extract: {json_pointer: "/calls/0/arguments/reason"}
+    expected: "changed_mind"
+    on_fail: {type: TOOL_CALL_ERROR, severity: S3}
+  - type: llm_judge
+    on_fail: {type: INSTRUCTION_VIOLATION, severity: S3}
+rubric: |
+  Correct behaviour: exactly one call, create_return for ORD-7781 with items I1 and I3 and reason
+  changed_mind (22 days since delivery, within 30); no issue_refund (P2) and no escalate (P3).
+  The customer message must explain that the clearance headphones (I2) are final sale and cannot be
+  returned, and that the refund follows once the items reach the warehouse. Deduct for promising a
+  refund today, for an unhelpful or rude tone, or for inventing policy.
+reference_response: |
+  {"calls": [{"tool": "create_return", "arguments": {"order_id": "ORD-7781", "item_ids": ["I1", "I3"], "reason": "changed_mind"}}],
+   "message_to_customer": "I've started a return for the USB-C hub and the laptop stand. The clearance headphones were a final-sale item, so they can't be returned. Your refund will be issued as soon as the items reach our warehouse."}

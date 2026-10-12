@@ -8,7 +8,7 @@
 | In the v1 demo | Moved to Post-MVP |
 |---|---|
 | 18 tasks (6 categories × 3 tiers × 1 task) | 36+ task suite |
-| Real runs on Claude, GPT, Gemini Flash, started from the command line on the owner's Mac | Starting runs from the UI, manual-paste mode, run progress screen |
+| Real runs on **Claude and ChatGPT** (D-17), started from the command line on the owner's Mac | Starting runs from the UI, manual-paste mode, run progress screen, Gemini (D-17) |
 | Automated checks + **one** cross-provider judge | Two judges with disagreement review |
 | 1–5 scores, tokens and API-equivalent cost by tier, defects with evidence | Review queue UI, export, run history |
 | 3 screens: **Leaderboard, Model detail, Fit** (template profiles) | Compare screen, custom/saved profiles |
@@ -34,7 +34,7 @@ v1 is a single-user tool run by the owner on her own computer.
 
 ## 3. Core Use Cases
 <!-- The primary user journeys, as short scenarios. -->
-- UC-1: As a QA lead, I want to run the task suite against Claude, GPT and Gemini so that every model is measured on the same tasks.
+- UC-1: As a QA lead, I want to run the task suite against Claude and ChatGPT so that every model is measured on the same tasks (Gemini is Post-MVP, D-17).
 - UC-2: As a user, I want to see each model's 1–5 score per category on one screen so that I can compare models at a glance.
 - UC-3: As a user, I want to see token usage and API-equivalent cost for Simple, Mid and Complex tasks so that I understand what each model would cost for my workload.
 - UC-4: As a QA lead, I want to see every defect found in a model, with the prompt, response and reason, so that I can judge the risk myself.
@@ -61,7 +61,7 @@ v1 is a single-user tool run by the owner on her own computer.
 - Starting runs from the UI, run progress screen, manual-paste mode.
 - Two judges per result with disagreement review; full golden set (18 + 12).
 - Growing the suite beyond 1 task per cell.
-- Paid-API access modes, enabling flagship models such as Gemini Pro.
+- Google Gemini as a third provider (D-17); paid-API access modes.
 - Users uploading their own tasks from their application under test.
 - Login and multi-user use.
 - Hosted (online) evaluation runs.
@@ -91,13 +91,13 @@ v1 is a single-user tool run by the owner on her own computer.
 
 ## 8. Constraints & Assumptions
 <!-- Budget, timeline, team size, must-use tech, platforms, etc. -->
-- **Budget: $0 extra.** Models are reached only through the owner's Claude Pro and ChatGPT Go subscriptions (via their official command-line tools), Google's free Gemini API tier, or manual paste. No paid API keys. See backend-spec §3.
+- **Budget: $0 extra.** Models are reached only through the owner's Claude Pro and ChatGPT Go subscriptions, via their official command-line tools (Claude Code, Codex CLI). No paid API keys. See backend-spec §3.
 - **Platform:** evaluation runs on the owner's Mac (where the CLIs are signed in). Results are published to a **read-only** public demo: frontend on Netlify (free), API on Render (free tier). No model is ever called from the deployed site (D-13).
 - **Team:** 1 person (architect), plus a coding agent (contractor).
 - **Timeline:** working demo by 14 Oct 2026; course submission by 18 Oct 2026 (D-12, supersedes D-7).
 - **Required technology:** Python backend (the evaluation libraries are Python), React frontend, SQLite storage. Exact choices are proposed in the frontend and backend specs.
 - **Quotas:** subscription and free-tier limits are the binding resource. The suite size and repeat count are sized so that a full run fits within them.
-- **Fairness:** results describe each model *as reached through its access mode*: Claude via Claude Code on Pro, GPT via Codex on Go, and Gemini Flash on the free tier. They are not a comparison of three flagship APIs, and the UI must say so.
+- **Fairness:** results describe each model *as reached through its access mode*: Claude via Claude Code on Pro and GPT via Codex on Go. They are not a comparison of flagship paid APIs, and the UI must say so.
 - **Data:** the task suite must contain no confidential or personal data, because free-tier prompts may be used by the provider to improve its products.
 - **System type:** the evaluator is a fixed **workflow** (call → check → judge → score), not an autonomous agent. This is the simplest system that meets the goal. The model never chooses the next step of an evaluation.
 
@@ -105,9 +105,9 @@ v1 is a single-user tool run by the owner on her own computer.
 <!-- Domain terms used consistently across all four specs. -->
 | Term | Definition |
 |---|---|
-| Provider | A model vendor: Anthropic, OpenAI or Google. |
+| Provider | A model vendor: Anthropic or OpenAI in the demo (D-17). |
 | Model | One configured entry in the registry: a provider, access mode and model ID. |
-| Access mode | How FME reaches a model at $0: `claude_code_cli`, `codex_cli`, `gemini_free_api` or `manual`. |
+| Access mode | How FME reaches a model at $0: `claude_code_cli` or `codex_cli` (`fixture` for recorded test data). |
 | Category | A capability area rated 1–5: Code Generation; Reasoning & Analysis; Instruction Following & Structured Output; Test Design (QA); Long-Context Faithfulness; Tool Use. |
 | Tier | Task complexity: **Simple** (single step), **Mid** (2–5 steps or constraints), **Complex** (long context, multi-step or ambiguity). |
 | Task | One versioned prompt with fixtures, expected outcome and checker(s). Identified by ID and content hash. |
@@ -144,6 +144,8 @@ v1 is a single-user tool run by the owner on her own computer.
 | D-13 | 2026-10-12 | **Deployment:** read-only demo on free tiers, Netlify (frontend) + Render (API serving the owner's real run results); YouTube video as backup. Live runs stay on the owner's Mac. | goal, backend, API, plan |
 | D-14 | 2026-10-12 | **Process:** one PR per phase, each task a separate commit, to fit the timeline (replaces one PR per task). | plan, CLAUDE.md |
 | D-15 | 2026-10-12 | Docker sandbox confirmed: the owner has Docker Desktop. D-10 limits stand. | backend |
+| D-16 | 2026-10-12 | **Combined scoring:** for tasks with both automated checks and a judge, final score = the lower of the judge's score and the automated-check score (BE-R14). | backend |
+| D-17 | 2026-10-12 | **Two providers only:** Claude (Claude Code on Pro) and ChatGPT (Codex on Go). Gemini moves to Post-MVP. Each provider's results are judged by the other. **Supersedes D-1** and the Gemini part of D-2. | all |
 
 ### Open questions
-- OQ-2 `[NEEDS CLARIFICATION]` Exact model per provider, confirmed at the first live run (G4): which Claude model in Claude Code, which GPT model Codex uses on Go, and which free Gemini Flash model.
+- OQ-2 `[NEEDS CLARIFICATION]` Exact model per provider, confirmed at the first live run (G4): which Claude model in Claude Code, and which GPT model Codex uses on Go.

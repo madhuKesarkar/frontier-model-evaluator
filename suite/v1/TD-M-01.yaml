@@ -1,0 +1,43 @@
+task_id: TD-M-01
+version: 1
+category: test_design
+tier: mid
+title: Test cases for login lockout
+prompt: |
+  Requirement for a web login:
+  - After 5 consecutive failed password attempts for the same username within 15 minutes,
+    the account is locked for 30 minutes.
+  - A successful login resets the failed-attempt counter.
+  - While locked, even the correct password is rejected with the message "Account locked".
+  - Failed attempts older than 15 minutes do not count towards the 5.
+
+  Write the test cases you would run, as a Markdown table with the columns
+  | ID | Preconditions | Steps | Expected result |
+  Focus on boundaries and timing. Return only the table.
+checkers:
+  - type: regex
+    pattern: "\\|\\s*ID\\s*\\|\\s*Preconditions\\s*\\|\\s*Steps\\s*\\|\\s*Expected result\\s*\\|"
+    on_fail: {type: FORMAT_BREAK, severity: S3}
+  - type: llm_judge
+    on_fail: {type: INSTRUCTION_VIOLATION, severity: S3}
+rubric: |
+  Score coverage against this reference list:
+  1) 4 failures then correct password logs in (below threshold); 2) 5th failure locks the account;
+  3) correct password while locked shows "Account locked"; 4) after exactly 30 minutes the account
+  unlocks; 5) just before 30 minutes still locked; 6) a success between failures resets the counter;
+  7) failures spread over more than 15 minutes do not lock (sliding window); 8) failures on a
+  different username do not count; 9) a failure exactly at the 15-minute boundary.
+  5 = at least 8 ideas with correct expectations; 4 = 6-7; 3 = 4-5; 2 = 2-3 or any wrong
+  expectation; 1 = unusable.
+reference_response: |
+  | ID | Preconditions | Steps | Expected result |
+  |---|---|---|---|
+  | L1 | Active account | 4 wrong passwords, then correct password | Login succeeds |
+  | L2 | Active account | 5 wrong passwords within 15 min | Account locked |
+  | L3 | Account locked | Enter correct password | "Account locked" |
+  | L4 | Locked at T | Correct password at T+29m59s | "Account locked" |
+  | L5 | Locked at T | Correct password at T+30m | Login succeeds |
+  | L6 | Active account | 3 wrong, 1 correct, 4 wrong | Not locked (counter reset) |
+  | L7 | Active account | 4 wrong at T, 1 wrong at T+16m | Not locked (first 4 expired) |
+  | L8 | Active account | 4 wrong at T, 1 wrong at T+15m | Not locked if window is exclusive; confirm rule |
+  | L9 | Users A and B | 3 wrong for A, 2 wrong for B | Neither locked |

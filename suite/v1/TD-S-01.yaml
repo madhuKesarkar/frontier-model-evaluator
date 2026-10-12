@@ -1,0 +1,37 @@
+task_id: TD-S-01
+version: 1
+category: test_design
+tier: simple
+title: Test cases for an Indian PIN code validator
+prompt: |
+  A function `is_valid_pin(pin: str) -> bool` validates Indian postal PIN codes.
+  Requirement: a valid PIN is exactly 6 digits and does not start with 0.
+
+  Write the test cases you would run, as a Markdown table with the columns
+  | ID | Input | Expected | Reason |
+  Cover valid cases, invalid cases and boundary cases. Return only the table.
+checkers:
+  - type: regex
+    pattern: "\\|\\s*ID\\s*\\|\\s*Input\\s*\\|\\s*Expected\\s*\\|\\s*Reason\\s*\\|"
+    on_fail: {type: FORMAT_BREAK, severity: S3}
+  - type: llm_judge
+    on_fail: {type: INSTRUCTION_VIOLATION, severity: S3}
+rubric: |
+  Score coverage against this reference list (each is one test idea):
+  1) valid 6-digit PIN not starting with 0 (e.g. 560001); 2) starts with 0 (e.g. 012345) is invalid;
+  3) 5 digits invalid; 4) 7 digits invalid; 5) contains a letter invalid; 6) contains a space or
+  hyphen invalid; 7) empty string invalid; 8) smallest/largest valid boundaries (100000, 999999).
+  5 = covers at least 7 ideas with correct expectations and no wrong expectations;
+  4 = 6 ideas; 3 = 4-5 ideas; 2 = 2-3 ideas or any wrong expectation; 1 = unusable.
+reference_response: |
+  | ID | Input | Expected | Reason |
+  |---|---|---|---|
+  | T1 | 560001 | true | Valid 6-digit PIN |
+  | T2 | 100000 | true | Smallest valid PIN |
+  | T3 | 999999 | true | Largest valid PIN |
+  | T4 | 012345 | false | Starts with 0 |
+  | T5 | 56000 | false | Only 5 digits |
+  | T6 | 5600011 | false | 7 digits |
+  | T7 | 56A001 | false | Contains a letter |
+  | T8 | 560 001 | false | Contains a space |
+  | T9 | (empty) | false | Empty input |

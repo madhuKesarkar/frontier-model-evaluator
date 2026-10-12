@@ -1,0 +1,52 @@
+task_id: CG-M-01
+version: 1
+category: code_generation
+tier: mid
+title: Parse a duration string with validation
+prompt: |
+  Write a Python function `parse_duration(text: str) -> int` that converts a duration such as
+  "1h30m15s" into a number of seconds.
+
+  Rules:
+  1. Units are `h` (hours), `m` (minutes) and `s` (seconds), each followed by a whole number before it.
+  2. Units must appear in the order h, m, s; each unit at most once; any unit may be omitted.
+  3. Surrounding whitespace is ignored; whitespace inside the value is not allowed.
+  4. Raise `ValueError` for an empty string, unknown units, wrong order, repeated units,
+     missing numbers, or negative values.
+
+  Examples: "1h30m15s" -> 5415, "45m" -> 2700, "  2h " -> 7200, "90s" -> 90.
+  Return only the code in a single ```python block.
+checkers:
+  - type: unit_tests
+    on_fail: {type: INCORRECT_CODE, severity: S2}
+    tests: |
+      import pytest
+      from solution import parse_duration
+
+      @pytest.mark.parametrize("text,expected", [
+          ("1h30m15s", 5415), ("45m", 2700), ("  2h ", 7200), ("90s", 90),
+          ("0s", 0), ("1h5s", 3605), ("10m0s", 600),
+      ])
+      def test_valid(text, expected):
+          assert parse_duration(text) == expected
+
+      @pytest.mark.parametrize("text", [
+          "", "   ", "5x", "30s1m", "1h1h", "h", "1 h", "-5m", "1.5h", "15",
+      ])
+      def test_invalid(text):
+          with pytest.raises(ValueError):
+              parse_duration(text)
+reference_response: |
+  ```python
+  import re
+
+  _PATTERN = re.compile(r"(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?")
+
+  def parse_duration(text: str) -> int:
+      value = text.strip()
+      match = _PATTERN.fullmatch(value)
+      if not value or match is None or not any(match.groups()):
+          raise ValueError(f"invalid duration: {text!r}")
+      hours, minutes, seconds = (int(g) if g else 0 for g in match.groups())
+      return hours * 3600 + minutes * 60 + seconds
+  ```

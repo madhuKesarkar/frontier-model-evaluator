@@ -1,0 +1,10 @@
+{
+ "text": "{\"q1\": \"98\", \"q2\": \"Head of Mobile\", \"q3\": \"20\"}\n",
+ "usage": {
+  "input_tokens": 2372,
+  "output_tokens": 12,
+  "overhead_tokens": 1900,
+  "cached_tokens": null
+ },
+ "latency_ms": 5900
+}

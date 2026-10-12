@@ -1,0 +1,10 @@
+{
+ "text": "Pixels 4200 + iPhones 3120 = 7320; add 18% GST.\nANSWER: 8637.60",
+ "usage": {
+  "input_tokens": 2723,
+  "output_tokens": 16,
+  "overhead_tokens": 2600,
+  "cached_tokens": 2600
+ },
+ "latency_ms": 5200
+}

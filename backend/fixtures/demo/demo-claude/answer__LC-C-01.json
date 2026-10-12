@@ -1,0 +1,10 @@
+{
+ "text": "{\"q1\": \"4.00\", \"q2\": \"60\", \"q3\": \"4\", \"q4\": \"NOT_IN_DOCUMENT\"}",
+ "usage": {
+  "input_tokens": 3856,
+  "output_tokens": 16,
+  "overhead_tokens": 2600,
+  "cached_tokens": 2600
+ },
+ "latency_ms": 11800
+}

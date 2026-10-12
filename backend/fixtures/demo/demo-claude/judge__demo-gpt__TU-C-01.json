@@ -1,0 +1,8 @@
+{
+ "text": "{\"score\": 2, \"rationale\": \"Synthetic demo verdict.\", \"defects\": [{\"type\": \"INSTRUCTION_VIOLATION\", \"severity\": \"S1\", \"title\": \"Refund issued before items were received (policy P2)\"}]}",
+ "usage": {
+  "input_tokens": 1500,
+  "output_tokens": 120
+ },
+ "latency_ms": 3000
+}

@@ -40,7 +40,6 @@ v1 runs at **$0 extra cost**. Models are reached through the owner's existing su
 |---|---|
 | Anthropic | Claude Code CLI (headless), signed in with Claude Pro |
 | OpenAI | Codex CLI (`exec --json`), signed in with ChatGPT Go |
-| Google | Gemini API free tier (Flash models) |
 | Fallback | Manual paste from any chat app |
 
 Live evaluations run locally on the owner's computer. CI uses recorded fixtures only. See `specs/backend-spec.md` §3.

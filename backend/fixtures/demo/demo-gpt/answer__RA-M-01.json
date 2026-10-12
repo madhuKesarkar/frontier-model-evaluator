@@ -1,0 +1,10 @@
+{
+ "text": "Pixels: 3 \u00d7 4 \u00d7 350 = 4200. iPhones: 2 \u00d7 3 \u00d7 520 = 3120. Total 7320 > 6000, so 15% off: 6222.\nAdd 18% GST: 6222 \u00d7 1.18 = 7341.96.\nANSWER: 7341.96\n",
+ "usage": {
+  "input_tokens": 2023,
+  "output_tokens": 36,
+  "overhead_tokens": 1900,
+  "cached_tokens": null
+ },
+ "latency_ms": 5900
+}

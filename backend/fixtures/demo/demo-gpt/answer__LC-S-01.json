@@ -1,0 +1,10 @@
+{
+ "text": "{\"q1\": \"15\", \"q2\": \"The lab manager\"}",
+ "usage": {
+  "input_tokens": 2052,
+  "output_tokens": 9,
+  "overhead_tokens": 1900,
+  "cached_tokens": null
+ },
+ "latency_ms": 3100
+}

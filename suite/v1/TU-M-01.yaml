@@ -1,0 +1,59 @@
+task_id: TU-M-01
+version: 1
+category: tool_use
+tier: mid
+title: Use a tool result to choose the next two calls
+prompt: |
+  You are a travel assistant. Tools:
+  - search_flights(origin: IATA code, destination: IATA code, date: YYYY-MM-DD) -> list of flights
+  - hold_seat(flight_id: string) -> hold reference
+  - send_email(to: string, subject: string, body: string) -> status
+
+  User: "Hold the cheapest flight from Bengaluru to Mumbai on 20 Oct 2026 that departs before noon,
+  then email me the details at madhu@example.com."
+
+  Already done in this conversation:
+  CALL search_flights {"origin": "BLR", "destination": "BOM", "date": "2026-10-20"}
+  RESULT [
+    {"flight_id": "AI-640", "departs": "06:10", "price_inr": 5400},
+    {"flight_id": "6E-512", "departs": "09:35", "price_inr": 4100},
+    {"flight_id": "QP-1104", "departs": "11:50", "price_inr": 4350},
+    {"flight_id": "6E-219", "departs": "13:20", "price_inr": 3600}
+  ]
+
+  Respond with the next tool calls, in order, as JSON only:
+  {"calls": [{"tool": "<name>", "arguments": {...}}]}
+  (You may write the email body before the hold reference is known.)
+checkers:
+  - type: json_schema
+    on_fail: {type: TOOL_CALL_ERROR, severity: S2}
+    schema:
+      type: object
+      required: [calls]
+      properties:
+        calls:
+          type: array
+          minItems: 2
+          items:
+            type: object
+            required: [tool, arguments]
+            properties: {tool: {type: string}, arguments: {type: object}}
+  - type: exact_match
+    extract: {json_pointer: "/calls/*/tool"}
+    expected: "hold_seat,send_email"
+    on_fail: {type: TOOL_CALL_ERROR, severity: S2}
+  - type: exact_match
+    extract: {json_pointer: "/calls/0/arguments/flight_id"}
+    expected: "6E-512"
+    on_fail: {type: REASONING_ERROR, severity: S1}
+  - type: exact_match
+    extract: {json_pointer: "/calls/1/arguments/to"}
+    expected: "madhu@example.com"
+    on_fail: {type: TOOL_CALL_ERROR, severity: S2}
+reference_response: |
+  {"calls": [
+    {"tool": "hold_seat", "arguments": {"flight_id": "6E-512"}},
+    {"tool": "send_email", "arguments": {"to": "madhu@example.com",
+      "subject": "Flight held: 6E-512 BLR to BOM on 20 Oct 2026",
+      "body": "I have held 6E-512 departing 09:35, INR 4,100 - the cheapest flight before noon."}}
+  ]}

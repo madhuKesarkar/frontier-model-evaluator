@@ -1,0 +1,8 @@
+{
+ "text": "{\"score\": 5, \"rationale\": \"Synthetic demo verdict.\", \"defects\": []}",
+ "usage": {
+  "input_tokens": 1500,
+  "output_tokens": 120
+ },
+ "latency_ms": 3000
+}

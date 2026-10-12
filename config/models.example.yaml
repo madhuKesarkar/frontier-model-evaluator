@@ -1,6 +1,7 @@
-# Copy to config/models.yaml and fill in at setup time (Gate G4). See SPEC.md FR-01 and §3.4.
+# Copy to config/models.yaml and fill in at setup time (Gate G4). See backend-spec §3.
+# Two providers in the demo (D-17): Claude via Claude Code (Pro), GPT via Codex CLI (Go).
 # Prices are PUBLIC API list prices per 1M tokens, used only to display "API-equivalent cost".
-# Nothing is billed: paid API keys are rejected at startup.
+# Nothing is billed: paid API keys are rejected at startup (BE-R1).
 models:
   - key: claude-pro
     provider: anthropic
@@ -15,15 +16,6 @@ models:
     provider: openai
     access_mode: codex_cli           # signed in with ChatGPT Go
     model_id: "<model Codex uses on the Go plan>"
-    display_name: "<Display Name>"
-    context_window: 0
-    price_input_per_mtok: 0.00
-    price_output_per_mtok: 0.00
-    enabled: true
-  - key: gemini-flash-free
-    provider: google
-    access_mode: gemini_free_api     # free-tier key in GEMINI_API_KEY
-    model_id: "<free Flash model shown in AI Studio>"
     display_name: "<Display Name>"
     context_window: 0
     price_input_per_mtok: 0.00

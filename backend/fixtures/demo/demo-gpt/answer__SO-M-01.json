@@ -1,0 +1,10 @@
+{
+ "text": "{\n  \"title\": \"Coupon discount disappears from order summary after changing delivery address\",\n  \"severity\": \"S3\",\n  \"component\": \"checkout\",\n  \"steps\": [\"Add any item to the cart\", \"Go to checkout\", \"Apply coupon SAVE10\", \"Change the delivery address\"],\n  \"expected\": \"Order summary keeps showing the 10% discount\",\n  \"actual\": \"Order summary shows the full price, although the discounted price is charged\"\n}\n",
+ "usage": {
+  "input_tokens": 2130,
+  "output_tokens": 102,
+  "overhead_tokens": 1900,
+  "cached_tokens": null
+ },
+ "latency_ms": 5900
+}

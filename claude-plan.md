@@ -1,6 +1,6 @@
 # Implementation Plan — Frontier Model Evaluator
 
-> Status: **APPROVED (G2, 2026-10-10); re-scoped to the demo on 2026-10-12 (D-12..D-14).** Changes to phases or done-when checks need architect approval.
+> Status: **APPROVED (G2, 2026-10-10); re-scoped to the demo on 2026-10-12 (D-12..D-14); two providers, Claude and ChatGPT (D-17).** Changes to phases or done-when checks need architect approval.
 > Strategy: **local-first, live-last, then deploy read-only.** Everything is built and tested against recorded fixtures. Live model calls happen only in Phase 4, started by the architect on her Mac. The public demo serves those results read-only (D-13).
 > Dates: working demo **14 Oct**, course submission **18 Oct**.
 
@@ -24,7 +24,7 @@ The coding agent (Claude Code, or Codex later) is a Level 3 autonomous agent: it
 | **1 Evaluation engine (fixtures only)** | Model registry + paid-key guard; SQLite schema; task schema + hashing + validator; **18 tasks** (1 per category × tier); adapter interface + recorded-fixture adapters; runner (retries, quota stop/resume, call cap, one active run); checkers + Docker sandbox; single cross-provider judge; scoring; defects; tokens/cost; `make eval` CLI | BE-AC-01..11, 13..17, 23 pass on fixtures; a fixture run of 3 models × 18 tasks gives the expected scores and defects; mutation checks on BE-AC-03, 07, 11, 13; **architect reviews the 18 tasks** | 13 Oct |
 | **2 Read API + fit engine** | Demo endpoints (health, models, leaderboard, model detail, defects, results, result, profile-templates, fit); 3 template profiles; read-only mode flag; CORS allow-list | API-AC-01..04 pass for demo endpoints; BE-AC-18..20 pass; read-only mode rejects anything but GET + `POST /fit` | 13 Oct |
 | **3 Frontend: 3 screens** | S1 Leaderboard, S2 Model detail (scores by tier, token panel, defects with evidence, drill-down), S4 Fit (templates); loading/empty/error states; fairness note | FE-AC-01..05, 07, 13, 14, 16 pass; architect clicks through Leaderboard → Model → defect → Fit on the seeded DB | 13 Oct |
-| **4 Live adapters + live run (G4)** | Real `claude_code_cli`, `codex_cli`, `gemini_free_api` adapters (fixture-tested); preflight check; `make smoke` then `make eval`. **Architect runs both on her Mac.** Golden (6) + seeded (6) judge check. | Every mode ready; live results visible locally with reported tokens; SM-3/SM-4 measured with numbers (pass or fail); exact models (OQ-2) recorded in the goal spec | 14 Oct |
+| **4 Live adapters + live run (G4)** | Real `claude_code_cli` and `codex_cli` adapters (fixture-tested; Gemini dropped, D-17); preflight check; `make smoke` then `make eval`. **Architect runs both on her Mac.** Golden (6) + seeded (6) judge check. | Every mode ready; live results visible locally with reported tokens; SM-3/SM-4 measured with numbers (pass or fail); exact models (OQ-2) recorded in the goal spec | 14 Oct |
 | **5 Deploy read-only demo (G5)** | Results snapshot committed; API on Render free tier (`FME_READ_ONLY=1`); frontend on Netlify (free) with the API URL; CORS = Netlify origin only | Public URL shows the real run; scripted checks (routes load, no localhost URLs, no secrets in bundle, CORS rejects other origins); architect's manual click-through | 14 Oct |
 | **6 Submission pack** | Design-decision walkthrough + interview prep page (course §4.8/§8.12), delivery record (roadmap, changes from plan, architecture, $0 cost), AC→test traceability, abstract draft, YouTube demo script | Pages live at the demo URL; every form field has a value ready for the architect | 15–16 Oct |
 
@@ -75,4 +75,7 @@ Demo scope: **35 ACs** tested; 9 Post-MVP (BE-AC-12, API-AC-05, FE-AC-06, 08–1
 | 2026-10-10 | 0.1 Repo tooling | merged (PR #3) | pre-commit hooks pass; gitleaks finds no leaks in history and catches a planted key; ruff flags planted S105/S602/F401 |
 | 2026-10-10 | 0.2 Backend skeleton | merged (PR #4); verified on architect's Mac (Python 3.12.4, 2 passed) | ruff/mypy(strict)/pytest pass; health test fails when endpoint broken; live server returns 200 {"status":"ok"} on 127.0.0.1:8000 |
 | 2026-10-10 | 0.3 Frontend skeleton | merged (PR #5) | lint/typecheck/3 tests/build pass; 2 mutation checks caught (1 after strengthening a weak test); headless Chromium shows connected + not-reachable states via Vite proxy |
-| 2026-10-12 | Re-scoped to demo (D-12..D-15) for 14 Oct demo / 18 Oct submission | in review | this PR |
+| 2026-10-12 | Re-scoped to demo (D-12..D-15) for 14 Oct demo / 18 Oct submission | merged | PR #6 |
+| 2026-10-12 | Phase 0 finish: 0.4 Makefile + AC check, 0.5 CI, 0.6 ESLint 10 | merged | PR #7; first CI run green (4 jobs) |
+| 2026-10-12 | D-16 (min scoring), D-17 (Claude + ChatGPT only) | in review | Phase 1 PR |
+| 2026-10-12 | Phase 1 engine: 1.1–1.8 | in review | 109 tests pass with Docker required; 17/17 Phase 1 ACs covered; mutation checks on BE-AC-03, 07, 11, 13, 15 caught; synthetic demo run via CLI |

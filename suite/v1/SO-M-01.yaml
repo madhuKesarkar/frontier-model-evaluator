@@ -1,0 +1,56 @@
+task_id: SO-M-01
+version: 1
+category: structured_output
+tier: mid
+title: Turn a bug report into a structured ticket
+prompt: |
+  Convert the bug report below into JSON matching this schema. Return only the JSON.
+
+  {
+    "title": string (max 80 characters),
+    "severity": one of "S1", "S2", "S3", "S4"
+        (S1 = data loss or security issue, S2 = feature broken with no workaround,
+         S3 = feature broken with a workaround, S4 = cosmetic),
+    "component": one of "checkout", "search", "profile", "notifications",
+    "steps": array of strings (at least 2),
+    "expected": string,
+    "actual": string
+  }
+
+  Bug report:
+  "On the checkout page, if I apply the coupon SAVE10 and then change the delivery address,
+  the discount disappears from the order summary but I am still charged the discounted price
+  at payment. Steps: add any item to the cart, go to checkout, apply SAVE10, change the address.
+  I expected the summary to keep showing the 10% discount. Instead the summary shows the full
+  price. Customers can still pay, and the amount charged is correct."
+checkers:
+  - type: json_schema
+    on_fail: {type: FORMAT_BREAK, severity: S2}
+    schema:
+      type: object
+      additionalProperties: false
+      required: [title, severity, component, steps, expected, actual]
+      properties:
+        title: {type: string, maxLength: 80, minLength: 1}
+        severity: {enum: [S1, S2, S3, S4]}
+        component: {enum: [checkout, search, profile, notifications]}
+        steps: {type: array, minItems: 2, items: {type: string}}
+        expected: {type: string, minLength: 1}
+        actual: {type: string, minLength: 1}
+  - type: exact_match
+    extract: {json_pointer: "/component"}
+    expected: "checkout"
+    on_fail: {type: REASONING_ERROR, severity: S3}
+  - type: exact_match
+    extract: {json_pointer: "/severity"}
+    expected: "S3"
+    on_fail: {type: REASONING_ERROR, severity: S3}
+reference_response: |
+  {
+    "title": "Coupon discount disappears from order summary after changing delivery address",
+    "severity": "S3",
+    "component": "checkout",
+    "steps": ["Add any item to the cart", "Go to checkout", "Apply coupon SAVE10", "Change the delivery address"],
+    "expected": "Order summary keeps showing the 10% discount",
+    "actual": "Order summary shows the full price, although the discounted price is charged"
+  }

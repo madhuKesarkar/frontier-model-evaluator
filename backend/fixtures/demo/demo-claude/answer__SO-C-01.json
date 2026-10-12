@@ -1,0 +1,10 @@
+{
+ "text": "{\"version\": \"4.2.0\", \"release_date\": \"2026-03-03\", \"changes\": [\n  {\"id\": \"PAY-112\", \"type\": \"breaking\", \"summary\": \"Removed deprecated customer_ref field from charge response; use customer_id\"},\n  {\"id\": \"PAY-118\", \"type\": \"fix\", \"summary\": \"Fixed off-by-one-unit currency rounding for JPY amounts\"},\n  {\"id\": \"PAY-127\", \"type\": \"fix\", \"summary\": \"/v3/payouts list endpoint now honours the limit parameter\"},\n  {\"id\": \"PAY-131\", \"type\": \"feature\", \"summary\": \"Idempotency keys for refund requests prevent double processing\"},\n  {\"id\": \"PAY-140\", \"type\": \"feature\", \"summary\": \"Sandbox-only endpoint for simulating card declines\"},\n  {\"id\": \"SEC-019\", \"type\": \"security\", \"summary\": \"Webhook signatures use SHA-256 instead of SHA-1\"}\n]}\n",
+ "usage": {
+  "input_tokens": 2925,
+  "output_tokens": 184,
+  "overhead_tokens": 2600,
+  "cached_tokens": 2600
+ },
+ "latency_ms": 11800
+}

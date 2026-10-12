@@ -1,0 +1,10 @@
+{
+ "text": "| ID | Requirement | Test idea | Input / data | Expected result | Risk (High/Medium/Low) |\n|---|---|---|---|---|---|\n| F1 | R6 | Insufficient balance | Balance \u20b910,000, transfer \u20b960,000 | Rejected; no OTP sent | High |\n| F2 | R5+R3 | New payee above cap and OTP threshold | New payee (1h old), \u20b960,000 | Rejected by payee cap before OTP | High |\n| F3 | R5 | New payee at cap | New payee (1h old), \u20b925,000 | Allowed | High |\n| F4 | R5 | New payee above cap | New payee (23h59m old), \u20b925,001 | Rejected | High |\n| F5 | R5 | Cap lifts after 24h | Payee 24h old, \u20b925,001 | Allowed | High |\n| F6 | R2 | Daily cap crossed cumulatively | Sent \u20b94,90,000 today, now \u20b920,000 | Rejected | High |\n| F7 | R2 | Exactly at daily cap | Sent \u20b94,90,000, now \u20b910,000 | Allowed | High |\n| F8 | R3 | OTP threshold | \u20b950,000 | No OTP | High |\n| F9 | R3 | OTP threshold +1 | \u20b950,001 | OTP required | High |\n| F10 | R3 | OTP expiry | Enter OTP at 3m01s | Rejected, transfer not made | High |\n| F11 | R3 | 4th OTP attempt | 3 wrong OTPs then correct | Rejected | High |\n| F12 | R1 | Max amount | \u20b92,00,000 | Allowed | Medium |\n| F13 | R1 | Above max | \u20b92,00,001 | Rejected | Medium |\n| F14 | R1 | Min amount | \u20b91 | Allowed | Medium |\n| F15 | R1 | Zero amount | \u20b90 | Rejected | Medium |\n| F16 | R4 | Holiday at 22:00 | Saturday 22:00 IST | Scheduled for Monday 09:00 | Medium |\n| F17 | R4 | Holiday at 21:59 | Saturday 21:59 IST | Immediate | Medium |\n| F18 | R4 | Weekday late | Wednesday 22:30 IST (working day) | Immediate | Low |\n| F19 | R2+R4 | Scheduled transfer and daily cap | Holiday 22:30 \u20b91,00,000 scheduled; next day already \u20b94,50,000 | Counted on next working day; rejected if cap exceeded | Medium |\n",
+ "usage": {
+  "input_tokens": 2854,
+  "output_tokens": 422,
+  "overhead_tokens": 2600,
+  "cached_tokens": 2600
+ },
+ "latency_ms": 11800
+}

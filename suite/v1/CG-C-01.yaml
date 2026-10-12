@@ -1,0 +1,144 @@
+task_id: CG-C-01
+version: 1
+category: code_generation
+tier: complex
+title: LRU cache with per-entry expiry and an injectable clock
+prompt: |
+  Implement a Python class `TTLCache` for an in-memory cache used by a test-data service.
+
+  Requirements:
+  1. `TTLCache(capacity: int, ttl_seconds: float, clock: Callable[[], float] = time.monotonic)`.
+     Raise `ValueError` if `capacity < 1` or `ttl_seconds <= 0`.
+  2. `put(key, value)` stores or replaces a value and marks it most recently used. Its expiry is
+     `clock() + ttl_seconds` at the time of the put (a replace resets the expiry).
+  3. `get(key, default=None)` returns the value and marks it most recently used. If the key is
+     missing or expired, return `default`; an expired entry must be removed.
+     An entry is expired when `clock() >= expiry`.
+  4. When a put of a new key would exceed `capacity`, first drop all expired entries; if still
+     full, evict the least recently used entry.
+  5. `__len__` returns the number of entries that are not expired at the time of the call.
+  6. `get` and `put` must be O(1) on average (do not scan all entries on every call, except the
+     expired-entry cleanup in rule 4).
+
+  Return only the code in a single ```python block. Use only the standard library.
+checkers:
+  - type: unit_tests
+    on_fail: {type: INCORRECT_CODE, severity: S2}
+    tests: |
+      import pytest
+      from solution import TTLCache
+
+      class Clock:
+          def __init__(self):
+              self.now = 0.0
+          def __call__(self):
+              return self.now
+
+      def make(capacity=2, ttl=10):
+          clock = Clock()
+          return TTLCache(capacity, ttl, clock=clock), clock
+
+      def test_validation():
+          with pytest.raises(ValueError):
+              TTLCache(0, 1)
+          with pytest.raises(ValueError):
+              TTLCache(1, 0)
+
+      def test_get_put_and_default():
+          cache, _ = make()
+          cache.put("a", 1)
+          assert cache.get("a") == 1
+          assert cache.get("missing", "d") == "d"
+
+      def test_lru_eviction_respects_recent_get():
+          cache, _ = make(capacity=2)
+          cache.put("a", 1); cache.put("b", 2)
+          cache.get("a")
+          cache.put("c", 3)
+          assert cache.get("b") is None
+          assert cache.get("a") == 1 and cache.get("c") == 3
+
+      def test_expiry_boundary_is_inclusive():
+          cache, clock = make(ttl=10)
+          cache.put("a", 1)
+          clock.now = 9.999
+          assert cache.get("a") == 1
+          clock.now = 10.0
+          assert cache.get("a") is None
+
+      def test_replace_resets_expiry():
+          cache, clock = make(ttl=10)
+          cache.put("a", 1)
+          clock.now = 8
+          cache.put("a", 2)
+          clock.now = 15
+          assert cache.get("a") == 2
+
+      def test_expired_entries_dropped_before_lru_eviction():
+          cache, clock = make(capacity=2, ttl=10)
+          cache.put("old", 1)
+          clock.now = 5
+          cache.put("fresh", 2)
+          clock.now = 11          # "old" expired, "fresh" still valid
+          cache.put("new", 3)     # must drop "old", not evict "fresh"
+          assert cache.get("fresh") == 2 and cache.get("new") == 3
+
+      def test_len_counts_only_live_entries():
+          cache, clock = make(capacity=3, ttl=10)
+          cache.put("a", 1)
+          clock.now = 5
+          cache.put("b", 2)
+          clock.now = 12
+          assert len(cache) == 1
+  - type: llm_judge
+    on_fail: {type: INCORRECT_CODE, severity: S3}
+rubric: |
+  Judge the code's quality beyond the unit tests: does it meet rule 6 (O(1) average get/put, e.g.
+  OrderedDict or dict + linked list), handle every rule including the inclusive expiry boundary and
+  replace semantics, and use only the standard library? Deduct for unnecessary complexity,
+  scanning all entries on every call, or unsafe practices.
+reference_response: |
+  ```python
+  import time
+  from collections import OrderedDict
+  from typing import Any, Callable, Hashable
+
+  class TTLCache:
+      def __init__(self, capacity: int, ttl_seconds: float,
+                   clock: Callable[[], float] = time.monotonic) -> None:
+          if capacity < 1:
+              raise ValueError("capacity must be >= 1")
+          if ttl_seconds <= 0:
+              raise ValueError("ttl_seconds must be > 0")
+          self._capacity = capacity
+          self._ttl = ttl_seconds
+          self._clock = clock
+          self._data: "OrderedDict[Hashable, tuple[Any, float]]" = OrderedDict()
+
+      def _expired(self, expiry: float) -> bool:
+          return self._clock() >= expiry
+
+      def get(self, key: Hashable, default: Any = None) -> Any:
+          item = self._data.get(key)
+          if item is None:
+              return default
+          value, expiry = item
+          if self._expired(expiry):
+              del self._data[key]
+              return default
+          self._data.move_to_end(key)
+          return value
+
+      def put(self, key: Hashable, value: Any) -> None:
+          if key in self._data:
+              self._data.move_to_end(key)
+          elif len(self._data) >= self._capacity:
+              for k in [k for k, (_, exp) in self._data.items() if self._expired(exp)]:
+                  del self._data[k]
+              if len(self._data) >= self._capacity:
+                  self._data.popitem(last=False)
+          self._data[key] = (value, self._clock() + self._ttl)
+
+      def __len__(self) -> int:
+          return sum(1 for _, exp in self._data.values() if not self._expired(exp))
+  ```

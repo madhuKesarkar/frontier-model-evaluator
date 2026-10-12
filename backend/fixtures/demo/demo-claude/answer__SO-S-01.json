@@ -1,0 +1,10 @@
+{
+ "text": "{\"name\": \"Priya Raman\", \"email\": \"priya.raman@example.com\", \"phone\": \"919845012345\"}\n",
+ "usage": {
+  "input_tokens": 2682,
+  "output_tokens": 21,
+  "overhead_tokens": 2600,
+  "cached_tokens": 2600
+ },
+ "latency_ms": 2400
+}

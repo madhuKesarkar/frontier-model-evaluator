@@ -1,0 +1,10 @@
+{
+ "text": "From 09:40 to 13:40 is 240 minutes; 13:15 is 25 minutes earlier, so 215 minutes.\nANSWER: 215\n",
+ "usage": {
+  "input_tokens": 2645,
+  "output_tokens": 23,
+  "overhead_tokens": 2600,
+  "cached_tokens": 2600
+ },
+ "latency_ms": 2400
+}

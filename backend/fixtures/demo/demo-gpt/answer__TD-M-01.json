@@ -1,0 +1,10 @@
+{
+ "text": "| ID | Preconditions | Steps | Expected result |\n|---|---|---|---|\n| L1 | Active account | 4 wrong passwords, then correct password | Login succeeds |\n| L2 | Active account | 5 wrong passwords within 15 min | Account locked |\n| L3 | Account locked | Enter correct password | \"Account locked\" |\n| L4 | Locked at T | Correct password at T+29m59s | \"Account locked\" |\n| L5 | Locked at T | Correct password at T+30m | Login succeeds |\n| L6 | Active account | 3 wrong, 1 correct, 4 wrong | Not locked (counter reset) |\n| L7 | Active account | 4 wrong at T, 1 wrong at T+16m | Not locked (first 4 expired) |\n| L8 | Active account | 4 wrong at T, 1 wrong at T+15m | Not locked if window is exclusive; confirm rule |\n| L9 | Users A and B | 3 wrong for A, 2 wrong for B | Neither locked |\n",
+ "usage": {
+  "input_tokens": 2037,
+  "output_tokens": 195,
+  "overhead_tokens": 1900,
+  "cached_tokens": null
+ },
+ "latency_ms": 5900
+}

@@ -40,7 +40,8 @@ Each provider is reached through an adapter. All adapters share one interface:
 |---|---|---|
 | `claude_code_cli` | Claude Code headless (`claude -p … --output-format json`) signed in with Claude Pro. Tools disabled; a minimal custom system prompt. | Reported (input, output, cache). Overhead = reported input minus the task prompt's estimated tokens. |
 | `codex_cli` | Codex CLI non-interactive (`codex exec --json`) signed in with ChatGPT Go. Read-only sandbox, no tools. | Reported in JSON events |
-| `gemini_free_api` | Google GenAI SDK with a free-tier key in `GEMINI_API_KEY`. Flash-class models only. | Reported |
+| `gemini_free_api` *(Post-MVP, D-17)* | Google GenAI SDK with a free-tier key in `GEMINI_API_KEY`. Flash-class models only. | Reported |
+| `fixture` | Recorded responses from files. Used by tests and offline demos; never a live call. | As recorded |
 | `manual` *(Post-MVP)* | Prompt shown in the UI; the reply is pasted back. | Estimated |
 
 Rules:
@@ -77,9 +78,9 @@ Rules:
 | 1 | Fail | Wrong, unsafe, wrongly refused, an S1 defect, or no usable output |
 
 - **BE-R11 Deterministic-only tasks:** if all checkers are deterministic, score = 5 when all pass. Otherwise the score is derived from the failed checks' defect severities (worst S1→1, S2→2, S3→3, S4→4).
-- **BE-R12 Judge assignment (demo):** a Result from provider X is judged by **one** model from a different provider, chosen by a fixed rotation (Anthropic→OpenAI, OpenAI→Google, Google→Anthropic). If that provider isn't ready, the next one in the rotation is used. *(Post-MVP: two judges, from each of the other providers.)*
+- **BE-R12 Judge assignment (demo, D-17):** a Result from one provider is judged by a model from the **other** provider (Anthropic ↔ OpenAI). If no model from the other provider is ready, no judge is used, the deterministic score stands, and the Result is flagged `needs_review`. *(Post-MVP: a third provider and two judges per result.)*
 - **BE-R13 Judge output:** judges must return `{score: 1–5, rationale, defects: [...]}`. Invalid output is retried once; if it is still invalid, the Result is flagged `needs_review`.
-- **BE-R14 Combining:** with one judge, the judge's score is used (after BE-R15). *(Post-MVP: with two judges, score = round-half-up of their mean; a difference of more than 1 flags `needs_review`.)*
+- **BE-R14 Combining (D-16):** if the task has no judge, score = deterministic score (BE-R11). With a judge, score = **min(judge score, deterministic score)**, so a fluent answer cannot outscore a failed hard check. If a judge was required but returned no valid score, the deterministic score is used and `needs_review` is set. *(Post-MVP: with two judges, the judge score is the round-half-up mean; a difference of more than 1 sets `needs_review`.)*
 - **BE-R15 Deterministic override:** if a code task's unit tests all fail, the score is at most 2, whatever the judges say.
 - **BE-R16 Human final say:** a reviewer's score replaces the computed score (`score_source = human`).
 - **BE-R17 Aggregates:** category score = mean of that model's Result scores in the category, across tiers and repeats, to 1 decimal. Tier sub-scores are computed the same way. Overall = mean of category scores. Results that are not `scored` are excluded and counted separately.

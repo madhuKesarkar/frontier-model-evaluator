@@ -1,0 +1,10 @@
+{
+ "text": "API is Tuesday (clue 4). Ben is not Monday (6) and Security is the day after Ben (1), so Ben is\nTuesday or Wednesday. Chen is the day before Performance (5). Trying Ben = Wednesday gives\nSecurity = Thursday; Chen must then be Tuesday (API) with Performance on Wednesday (Ben's).\nDivya takes Monday (3) and the remaining suite, UI. Asha gets Security on Thursday, consistent\nwith clue 2. Ben = Tuesday would force Ben to own API and leaves no valid day for Chen.\nANSWER: Asha, Thursday\n",
+ "usage": {
+  "input_tokens": 2761,
+  "output_tokens": 121,
+  "overhead_tokens": 2600,
+  "cached_tokens": 2600
+ },
+ "latency_ms": 11800
+}
