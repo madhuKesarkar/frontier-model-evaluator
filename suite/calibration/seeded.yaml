@@ -1,0 +1,81 @@
+# Seeded-defect set (backend-spec §7, D-12; SM-4 / BE-AC-22): 6 deliberately flawed answers,
+# one per category. The judge passes if it scores at least 5 of 6 at 2 or lower. This is the
+# mutation-style test of the judge: each answer has one planted, clearly serious flaw.
+items:
+  - id: S-CG
+    task_id: CG-C-01
+    flaw: Expiry is ignored completely (ttl_seconds is stored but never checked).
+    response: |
+      ```python
+      import time
+      from collections import OrderedDict
+
+      class TTLCache:
+          def __init__(self, capacity, ttl_seconds, clock=time.monotonic):
+              if capacity < 1 or ttl_seconds <= 0:
+                  raise ValueError("invalid")
+              self.capacity, self.ttl, self.clock = capacity, ttl_seconds, clock
+              self.data = OrderedDict()
+
+          def get(self, key, default=None):
+              if key not in self.data:
+                  return default
+              self.data.move_to_end(key)
+              return self.data[key]
+
+          def put(self, key, value):
+              if key in self.data:
+                  self.data.move_to_end(key)
+              elif len(self.data) >= self.capacity:
+                  self.data.popitem(last=False)
+              self.data[key] = value
+
+          def __len__(self):
+              return len(self.data)
+      ```
+
+  - id: S-RA
+    task_id: RA-C-01
+    flaw: Wrong final answer reached through a step that contradicts clue 1.
+    response: |
+      API is on Tuesday (clue 4). Ben isn't Monday, so Ben is Wednesday, and since Security is the
+      day after Ben, Ben must own Security himself on Wednesday. Chen runs the day before
+      Performance, so Chen is Tuesday and Performance is Wednesday. Divya is Monday.
+      ANSWER: Ben, Wednesday
+
+  - id: S-SO
+    task_id: SO-C-01
+    flaw: Invents ticket PAY-150, drops SEC-019, and gives the wrong release date.
+    response: |
+      {"version": "4.2.0", "release_date": "2026-02-03", "changes": [
+        {"id": "PAY-112", "type": "fix", "summary": "customer_ref field cleanup"},
+        {"id": "PAY-118", "type": "fix", "summary": "JPY rounding fix"},
+        {"id": "PAY-127", "type": "fix", "summary": "Payout list limit fix"},
+        {"id": "PAY-131", "type": "feature", "summary": "Refund idempotency keys"},
+        {"id": "PAY-140", "type": "feature", "summary": "Card decline simulator"},
+        {"id": "PAY-150", "type": "feature", "summary": "New payout scheduling API"}
+      ]}
+
+  - id: S-TD
+    task_id: TD-M-01
+    flaw: Only two cases, and one has the wrong expectation (4 failures lock the account).
+    response: |
+      | ID | Preconditions | Steps | Expected result |
+      |---|---|---|---|
+      | T1 | Active account | Enter 4 wrong passwords | Account locked |
+      | T2 | Active account | Enter the correct password | Login succeeds |
+
+  - id: S-LC
+    task_id: LC-C-01
+    flaw: Uses superseded text for q1 and q2 and invents a retention period for q4.
+    response: |
+      {"q1": "4.00", "q2": "90", "q3": "4", "q4": "1 year"}
+
+  - id: S-TU
+    task_id: TU-C-01
+    flaw: Returns the final-sale item and refunds immediately, breaking P1 and P2.
+    response: |
+      {"calls": [
+         {"tool": "create_return", "arguments": {"order_id": "ORD-7781", "item_ids": ["I1", "I2", "I3"], "reason": "changed_mind"}},
+         {"tool": "issue_refund", "arguments": {"order_id": "ORD-7781", "amount_inr": 5297}}],
+       "message_to_customer": "Done! All three items are being returned and your refund of INR 5297 has been issued today."}

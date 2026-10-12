@@ -1,23 +1,26 @@
-# Copy to config/models.yaml and fill in at setup time (Gate G4). See backend-spec §3.
+# Copy to config/models.yaml at setup time (Gate G4). See backend-spec §3.
 # Two providers in the demo (D-17): Claude via Claude Code (Pro), GPT via Codex CLI (Go).
-# Prices are PUBLIC API list prices per 1M tokens, used only to display "API-equivalent cost".
-# Nothing is billed: paid API keys are rejected at startup (BE-R1).
+# Models chosen by the architect on 2026-10-12 (OQ-2): the defaults each plan gives.
+# Prices are PUBLIC API list prices per 1M tokens, used only to display "API-equivalent
+# cost". Nothing is billed: paid API keys are rejected at startup (BE-R1).
+# Prices below are from third-party price trackers (2026-10-12); confirm them against
+# the providers' own pricing pages before the live run.
 models:
   - key: claude-pro
     provider: anthropic
     access_mode: claude_code_cli     # signed in with Claude Pro
-    model_id: "<model selected in Claude Code>"
-    display_name: "<Display Name>"
-    context_window: 200000
-    price_input_per_mtok: 0.00
-    price_output_per_mtok: 0.00
+    model_id: claude-sonnet-5        # as reported in `claude -p --output-format json`
+    display_name: "Claude Sonnet 5 (Claude Code, Pro)"
+    context_window: 1000000
+    price_input_per_mtok: 2.00
+    price_output_per_mtok: 10.00
     enabled: true
   - key: gpt-go
     provider: openai
     access_mode: codex_cli           # signed in with ChatGPT Go
-    model_id: "<model Codex uses on the Go plan>"
-    display_name: "<Display Name>"
+    model_id: gpt-6-luna             # Codex default on Go; default reasoning effort
+    display_name: "GPT-6 Luna (Codex, Go)"
     context_window: 0
-    price_input_per_mtok: 0.00
-    price_output_per_mtok: 0.00
+    price_input_per_mtok: 0.10
+    price_output_per_mtok: 0.50
     enabled: true

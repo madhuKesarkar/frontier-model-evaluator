@@ -1,0 +1,121 @@
+# Golden set (backend-spec §7, D-12; SM-3 / BE-AC-21): 6 answers of KNOWN quality, one per
+# category, each with the owner's 1-5 label. The judge passes if it scores at least 5 of 6
+# within +/-1 of the label.
+#
+# Drafted by the coding agent on 2026-10-12. `human_score` values are PROPOSALS until the
+# architect reviews them: `labelled_by` changes to "architect" once she approves or edits.
+labelled_by: proposed
+items:
+  - id: G-CG
+    task_id: CG-C-01
+    human_score: 3
+    why: >-
+      Passes the behaviour the tests check, but get() and put() scan every entry on each call to
+      purge expired items, which breaks rule 6 (O(1) average). Needs rework for the stated
+      performance requirement; otherwise clear.
+    response: |
+      ```python
+      import time
+      from collections import OrderedDict
+      from typing import Any, Callable, Hashable
+
+      class TTLCache:
+          def __init__(self, capacity: int, ttl_seconds: float,
+                       clock: Callable[[], float] = time.monotonic) -> None:
+              if capacity < 1 or ttl_seconds <= 0:
+                  raise ValueError("invalid capacity or ttl")
+              self.capacity, self.ttl, self.clock = capacity, ttl_seconds, clock
+              self.data: "OrderedDict[Hashable, tuple[Any, float]]" = OrderedDict()
+
+          def _purge(self) -> None:
+              now = self.clock()
+              for key in [k for k, (_, exp) in self.data.items() if now >= exp]:
+                  del self.data[key]
+
+          def get(self, key: Hashable, default: Any = None) -> Any:
+              self._purge()
+              if key not in self.data:
+                  return default
+              self.data.move_to_end(key)
+              return self.data[key][0]
+
+          def put(self, key: Hashable, value: Any) -> None:
+              self._purge()
+              if key in self.data:
+                  self.data.move_to_end(key)
+              elif len(self.data) >= self.capacity:
+                  self.data.popitem(last=False)
+              self.data[key] = (value, self.clock() + self.ttl)
+
+          def __len__(self) -> int:
+              self._purge()
+              return len(self.data)
+      ```
+
+  - id: G-RA
+    task_id: RA-C-01
+    human_score: 5
+    why: Correct answer with a short, valid chain that uses every clue.
+    response: |
+      Clue 4: API runs on Tuesday. Clue 6 rules Ben out of Monday, and clue 1 needs a day after
+      Ben's, so Ben is Tuesday or Wednesday.
+      Case Ben = Tuesday: Ben owns API and Security is Wednesday. UI and Performance take Monday
+      and Thursday. Performance can't be Monday (clue 5 needs Chen the day before), so it is
+      Thursday with Chen on Wednesday (Security) and UI on Monday. Divya and Asha share Monday (UI)
+      and Thursday (Performance), so Asha gets UI or Performance, which clue 2 forbids. Impossible.
+      Case Ben = Wednesday: Security is Thursday. Chen is the day before Performance: Monday would
+      put Performance on Tuesday (API) and Wednesday is Ben's, so Chen is Tuesday (API) and
+      Performance is Wednesday, Ben's. Divya takes Monday (clue 3),
+      leaving UI for her, and Asha owns Security on Thursday, consistent with clue 2.
+      ANSWER: Asha, Thursday
+
+  - id: G-SO
+    task_id: SO-C-01
+    human_score: 3
+    why: >-
+      Structure, order and types are all correct, but the PAY-127 summary invents a detail
+      ("now defaults to 50") that is not in the release notes. One hallucinated fact in an
+      otherwise correct output.
+    response: |
+      {"version": "4.2.0", "release_date": "2026-03-03", "changes": [
+        {"id": "PAY-112", "type": "breaking", "summary": "Removed deprecated customer_ref from charge response; use customer_id"},
+        {"id": "PAY-118", "type": "fix", "summary": "Fixed JPY rounding that was off by one unit"},
+        {"id": "PAY-127", "type": "fix", "summary": "/v3/payouts now honours limit, which now defaults to 50"},
+        {"id": "PAY-131", "type": "feature", "summary": "Idempotency keys for refund requests"},
+        {"id": "PAY-140", "type": "feature", "summary": "Sandbox endpoint to simulate card declines"},
+        {"id": "SEC-019", "type": "security", "summary": "Webhook signatures moved from SHA-1 to SHA-256"}
+      ]}
+
+  - id: G-TD
+    task_id: TD-M-01
+    human_score: 4
+    why: >-
+      Covers 6 of the 9 reference ideas (1-6) with correct expectations; misses the sliding
+      15-minute window, the per-username scope and the 15-minute boundary. Rubric: 6-7 ideas = 4.
+    response: |
+      | ID | Preconditions | Steps | Expected result |
+      |---|---|---|---|
+      | T1 | Active account | Enter 4 wrong passwords, then the correct one | Login succeeds |
+      | T2 | Active account | Enter 5 wrong passwords within 2 minutes | Account locked |
+      | T3 | Account locked | Enter the correct password | Rejected with "Account locked" |
+      | T4 | Account locked at 10:00 | Correct password at 10:29 | Rejected with "Account locked" |
+      | T5 | Account locked at 10:00 | Correct password at 10:30 | Login succeeds |
+      | T6 | Active account | 3 wrong, then correct, then 4 wrong | Not locked (success reset the counter) |
+
+  - id: G-LC
+    task_id: LC-C-01
+    human_score: 5
+    why: All four answers correct, amendments applied, nothing invented for q4.
+    response: |
+      {"q1": "3.00", "q2": "60", "q3": "4", "q4": "NOT_IN_DOCUMENT"}
+
+  - id: G-TU
+    task_id: TU-C-01
+    human_score: 3
+    why: >-
+      Correct single create_return for I1 and I3 with no refund or escalation, but the message
+      never tells the customer that the headphones are final sale and excluded, so they would
+      expect all three items back. Rubric requires that explanation.
+    response: |
+      {"calls": [{"tool": "create_return", "arguments": {"order_id": "ORD-7781", "item_ids": ["I1", "I3"], "reason": "changed_mind"}}],
+       "message_to_customer": "I've started your return. Your refund will be issued as soon as the items arrive at our warehouse."}
