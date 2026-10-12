@@ -1,0 +1,1708 @@
+{
+  "components": {
+    "schemas": {
+      "Category": {
+        "enum": [
+          "code_generation",
+          "reasoning",
+          "structured_output",
+          "test_design",
+          "long_context",
+          "tool_use"
+        ],
+        "title": "Category",
+        "type": "string"
+      },
+      "CheckOut": {
+        "additionalProperties": false,
+        "properties": {
+          "checker": {
+            "title": "Checker",
+            "type": "string"
+          },
+          "output": {
+            "title": "Output",
+            "type": "string"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "checker",
+          "passed",
+          "output"
+        ],
+        "title": "CheckOut",
+        "type": "object"
+      },
+      "DefectList": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DefectOut"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "count",
+          "items"
+        ],
+        "title": "DefectList",
+        "type": "object"
+      },
+      "DefectOut": {
+        "additionalProperties": false,
+        "properties": {
+          "actual": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/Evidence"
+          },
+          "expected": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "model_key": {
+            "title": "Model Key",
+            "type": "string"
+          },
+          "result_id": {
+            "title": "Result Id",
+            "type": "integer"
+          },
+          "severity": {
+            "title": "Severity",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          },
+          "tier": {
+            "title": "Tier",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "result_id",
+          "model_key",
+          "task_id",
+          "category",
+          "tier",
+          "type",
+          "severity",
+          "title",
+          "expected",
+          "actual",
+          "evidence",
+          "source",
+          "status"
+        ],
+        "title": "DefectOut",
+        "type": "object"
+      },
+      "Evidence": {
+        "additionalProperties": false,
+        "properties": {
+          "checker_output": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checker Output"
+          },
+          "prompt_excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Excerpt"
+          },
+          "response_excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response Excerpt"
+          }
+        },
+        "required": [
+          "prompt_excerpt",
+          "response_excerpt",
+          "checker_output"
+        ],
+        "title": "Evidence",
+        "type": "object"
+      },
+      "FitRequest": {
+        "additionalProperties": false,
+        "description": "Validated by hand so an invalid profile is a 400 (api-contract-spec \u00a73), not a 422.",
+        "properties": {
+          "profile": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          }
+        },
+        "title": "FitRequest",
+        "type": "object"
+      },
+      "FitResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/ProfileOut"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "verdicts": {
+            "items": {
+              "$ref": "#/components/schemas/VerdictOut"
+            },
+            "title": "Verdicts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "run_id",
+          "profile",
+          "verdicts"
+        ],
+        "title": "FitResponse",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "JudgeOut": {
+        "additionalProperties": false,
+        "properties": {
+          "judge_model_key": {
+            "title": "Judge Model Key",
+            "type": "string"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          }
+        },
+        "required": [
+          "judge_model_key",
+          "score",
+          "rationale"
+        ],
+        "title": "JudgeOut",
+        "type": "object"
+      },
+      "Leaderboard": {
+        "additionalProperties": false,
+        "properties": {
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/LeaderboardRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "run_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Label"
+          },
+          "run_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Source"
+          }
+        },
+        "required": [
+          "run_id",
+          "run_label",
+          "run_source",
+          "rows"
+        ],
+        "title": "Leaderboard",
+        "type": "object"
+      },
+      "LeaderboardRow": {
+        "additionalProperties": false,
+        "properties": {
+          "avg_cost_per_task_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Cost Per Task Usd"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelSummaryOut"
+          },
+          "open_s1_s2_defects": {
+            "title": "Open S1 S2 Defects",
+            "type": "integer"
+          },
+          "overall": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overall"
+          },
+          "p50_latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P50 Latency Ms"
+          },
+          "scores": {
+            "items": {
+              "$ref": "#/components/schemas/ScoreCell"
+            },
+            "title": "Scores",
+            "type": "array"
+          }
+        },
+        "required": [
+          "model",
+          "overall",
+          "scores",
+          "avg_cost_per_task_usd",
+          "p50_latency_ms",
+          "open_s1_s2_defects"
+        ],
+        "title": "LeaderboardRow",
+        "type": "object"
+      },
+      "ModelDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "costliest_task_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Costliest Task Ids",
+            "type": "array"
+          },
+          "last_run_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run At"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelSummaryOut"
+          },
+          "open_s1_s2_defects": {
+            "title": "Open S1 S2 Defects",
+            "type": "integer"
+          },
+          "overall": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overall"
+          },
+          "p50_latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P50 Latency Ms"
+          },
+          "p95_latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95 Latency Ms"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "integer"
+          },
+          "scores": {
+            "items": {
+              "$ref": "#/components/schemas/ScoreCell"
+            },
+            "title": "Scores",
+            "type": "array"
+          },
+          "tokens_by_tier": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TierTokens"
+            },
+            "title": "Tokens By Tier",
+            "type": "object"
+          }
+        },
+        "required": [
+          "model",
+          "run_id",
+          "last_run_at",
+          "overall",
+          "scores",
+          "tokens_by_tier",
+          "costliest_task_ids",
+          "p50_latency_ms",
+          "p95_latency_ms",
+          "open_s1_s2_defects"
+        ],
+        "title": "ModelDetail",
+        "type": "object"
+      },
+      "ModelSummaryOut": {
+        "additionalProperties": false,
+        "properties": {
+          "access_mode": {
+            "title": "Access Mode",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "provider",
+          "access_mode",
+          "model_id",
+          "display_name",
+          "enabled"
+        ],
+        "title": "ModelSummaryOut",
+        "type": "object"
+      },
+      "ProfileOut": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "is_template": {
+            "title": "Is Template",
+            "type": "boolean"
+          },
+          "max_cost_per_task_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Cost Per Task Usd"
+          },
+          "max_p95_latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max P95 Latency Ms"
+          },
+          "must_have": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Must Have",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "tier_mix": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Tier Mix",
+            "type": "object"
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Weights",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "weights",
+          "must_have",
+          "tier_mix",
+          "max_cost_per_task_usd",
+          "max_p95_latency_ms",
+          "is_template"
+        ],
+        "title": "ProfileOut",
+        "type": "object"
+      },
+      "Reason": {
+        "additionalProperties": false,
+        "properties": {
+          "rule": {
+            "title": "Rule",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule",
+          "text"
+        ],
+        "title": "Reason",
+        "type": "object"
+      },
+      "ResultDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/CheckOut"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "defects": {
+            "items": {
+              "$ref": "#/components/schemas/DefectOut"
+            },
+            "title": "Defects",
+            "type": "array"
+          },
+          "judges": {
+            "items": {
+              "$ref": "#/components/schemas/JudgeOut"
+            },
+            "title": "Judges",
+            "type": "array"
+          },
+          "model_key": {
+            "title": "Model Key",
+            "type": "string"
+          },
+          "needs_review": {
+            "title": "Needs Review",
+            "type": "boolean"
+          },
+          "response_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response Text"
+          },
+          "result_id": {
+            "title": "Result Id",
+            "type": "integer"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "score_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score Source"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "task": {
+            "$ref": "#/components/schemas/TaskInfo"
+          },
+          "tier": {
+            "title": "Tier",
+            "type": "string"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/UsageRecord"
+          }
+        },
+        "required": [
+          "result_id",
+          "model_key",
+          "category",
+          "tier",
+          "task",
+          "response_text",
+          "checks",
+          "judges",
+          "score",
+          "score_source",
+          "needs_review",
+          "status",
+          "usage",
+          "defects"
+        ],
+        "title": "ResultDetail",
+        "type": "object"
+      },
+      "ResultSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "title": "Attempt",
+            "type": "integer"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "needs_review": {
+            "title": "Needs Review",
+            "type": "boolean"
+          },
+          "result_id": {
+            "title": "Result Id",
+            "type": "integer"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          },
+          "tier": {
+            "title": "Tier",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/UsageRecord"
+          }
+        },
+        "required": [
+          "result_id",
+          "task_id",
+          "title",
+          "tier",
+          "category",
+          "attempt",
+          "score",
+          "status",
+          "needs_review",
+          "usage"
+        ],
+        "title": "ResultSummary",
+        "type": "object"
+      },
+      "ScoreCell": {
+        "additionalProperties": false,
+        "properties": {
+          "by_tier": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "By Tier",
+            "type": "object"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "scored_results": {
+            "title": "Scored Results",
+            "type": "integer"
+          },
+          "unscored_results": {
+            "title": "Unscored Results",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "category",
+          "score",
+          "by_tier",
+          "scored_results",
+          "unscored_results"
+        ],
+        "title": "ScoreCell",
+        "type": "object"
+      },
+      "TaskInfo": {
+        "additionalProperties": false,
+        "properties": {
+          "content_hash": {
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "type": "string"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "task_id",
+          "title",
+          "prompt",
+          "version",
+          "content_hash"
+        ],
+        "title": "TaskInfo",
+        "type": "object"
+      },
+      "Tier": {
+        "enum": [
+          "simple",
+          "mid",
+          "complex"
+        ],
+        "title": "Tier",
+        "type": "string"
+      },
+      "TierTokens": {
+        "additionalProperties": false,
+        "properties": {
+          "avg": {
+            "$ref": "#/components/schemas/UsageRecord"
+          },
+          "total": {
+            "$ref": "#/components/schemas/UsageRecord"
+          }
+        },
+        "required": [
+          "avg",
+          "total"
+        ],
+        "title": "TierTokens",
+        "type": "object"
+      },
+      "UsageRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "api_equiv_cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Equiv Cost Usd"
+          },
+          "cached_tokens": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached Tokens"
+          },
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Tokens"
+          },
+          "input_tokens_estimated": {
+            "title": "Input Tokens Estimated",
+            "type": "boolean"
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency Ms"
+          },
+          "output_tokens": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Tokens"
+          },
+          "output_tokens_estimated": {
+            "title": "Output Tokens Estimated",
+            "type": "boolean"
+          },
+          "overhead_tokens": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overhead Tokens"
+          },
+          "reasoning_tokens": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reasoning Tokens"
+          }
+        },
+        "required": [
+          "input_tokens",
+          "input_tokens_estimated",
+          "output_tokens",
+          "output_tokens_estimated",
+          "reasoning_tokens",
+          "cached_tokens",
+          "overhead_tokens",
+          "api_equiv_cost_usd",
+          "latency_ms"
+        ],
+        "title": "UsageRecord",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "VerdictOut": {
+        "additionalProperties": false,
+        "properties": {
+          "cited_defect_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Cited Defect Ids",
+            "type": "array"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "expected_cost_per_task_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Cost Per Task Usd"
+          },
+          "fit_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fit Score"
+          },
+          "model_key": {
+            "title": "Model Key",
+            "type": "string"
+          },
+          "p95_latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95 Latency Ms"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/Reason"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "risks": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Risks",
+            "type": "array"
+          },
+          "strengths": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Strengths",
+            "type": "array"
+          },
+          "verdict": {
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "model_key",
+          "display_name",
+          "verdict",
+          "fit_score",
+          "expected_cost_per_task_usd",
+          "p95_latency_ms",
+          "reasons",
+          "strengths",
+          "risks",
+          "cited_defect_ids"
+        ],
+        "title": "VerdictOut",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Frontier Model Evaluator",
+    "version": "0.2.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/fit": {
+      "post": {
+        "operationId": "fit_api_v1_fit_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FitResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Fit"
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/leaderboard": {
+      "get": {
+        "operationId": "leaderboard_api_v1_leaderboard_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "run_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Run Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tier",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Tier"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tier"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Category"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Leaderboard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Leaderboard"
+      }
+    },
+    "/api/v1/models": {
+      "get": {
+        "operationId": "list_models_api_v1_models_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModelSummaryOut"
+                  },
+                  "title": "Response List Models Api V1 Models Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Models"
+      }
+    },
+    "/api/v1/models/{key}": {
+      "get": {
+        "operationId": "model_detail_api_v1_models__key__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "title": "Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "run_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Model Detail"
+      }
+    },
+    "/api/v1/models/{key}/defects": {
+      "get": {
+        "operationId": "model_defects_api_v1_models__key__defects_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "title": "Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "run_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Run Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "severity",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^S[1-4]$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Severity"
+            }
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(HALLUCINATION|INSTRUCTION_VIOLATION|FORMAT_BREAK|INCORRECT_CODE|REASONING_ERROR|TOOL_CALL_ERROR|OVER_REFUSAL|UNSAFE_OUTPUT|TRUNCATION|TIMEOUT_ERROR|INCONSISTENCY)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tier",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Tier"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tier"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Category"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(open|confirmed|false_positive)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefectList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Model Defects"
+      }
+    },
+    "/api/v1/models/{key}/results": {
+      "get": {
+        "operationId": "model_results_api_v1_models__key__results_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "title": "Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "run_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Run Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tier",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Tier"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tier"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Category"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ResultSummary"
+                  },
+                  "title": "Response Model Results Api V1 Models  Key  Results Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Model Results"
+      }
+    },
+    "/api/v1/profile-templates": {
+      "get": {
+        "operationId": "profile_templates_api_v1_profile_templates_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProfileOut"
+                  },
+                  "title": "Response Profile Templates Api V1 Profile Templates Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Profile Templates"
+      }
+    },
+    "/api/v1/results/{result_id}": {
+      "get": {
+        "operationId": "result_detail_api_v1_results__result_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "result_id",
+            "required": true,
+            "schema": {
+              "title": "Result Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Result Detail"
+      }
+    }
+  }
+}

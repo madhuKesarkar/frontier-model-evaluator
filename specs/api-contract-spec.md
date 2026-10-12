@@ -108,6 +108,18 @@
 |---|---|---|
 | `GET /export?view=leaderboard\|model\|defects&format=csv\|json&run_id=&model_key=` | 200 file (`text/csv` or `application/json`). Values match the corresponding view endpoint. | 400 `model_key` missing for `model`/`defects` · 404 |
 
+## 3a. Demo additions (Phase 2, for architect review)
+Additive fields the screens need. Nothing documented above was removed or renamed.
+- **Machine-readable contract:** `backend/openapi.json` is generated from the code (`make openapi`). A test fails if the code and the snapshot differ, so any API change is a visible, reviewed diff.
+- `GET /leaderboard`: adds `run_label` and `run_source` (`recorded` or `live`) so the UI can label synthetic demo data honestly. With no completed run it returns `200 {"run_id": null, "run_label": null, "run_source": null, "rows": []}` (the UI's empty state). Rows are sorted by `overall`, best first.
+- `GET /models/{key}`: adds `run_id`, `p50_latency_ms`, `p95_latency_ms`, `open_s1_s2_defects`. In `tokens_by_tier`, `avg` values may be decimals and `avg.latency_ms` is the tier's p50; `total.latency_ms` is `null`.
+- `GET /models/{key}/results` items: add `title`, `attempt`, `needs_review`.
+- `GET /results/{id}`: adds `model_key`, `category`, `tier`, `status`.
+- `POST /fit`: the response adds `profile` (the profile used); each verdict adds `display_name`. `verdict` is `recommended`, `conditional` or `not_recommended`. Verdicts are sorted best first. Template ids are strings (`tpl-test-case-gen`, `tpl-support-chatbot`, `tpl-code-assistant`).
+- Defects are sorted by severity (S1 first), then task.
+- **503** `{"detail": "Database not set up yet: run `make migrate` …"}` when the schema doesn't exist.
+- **Read-only mode** (deployed demo): any method other than GET/HEAD/OPTIONS and `POST /fit` returns `405 {"detail": "This demo is read-only"}`.
+
 ## 4. Acceptance Criteria
 
 **Demo scope:** API-AC-01 to 04 for the demo endpoints. **API-AC-05** (export) is Post-MVP.
