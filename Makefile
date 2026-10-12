@@ -5,7 +5,7 @@ SHELL := /bin/bash
 VENV  := backend/.venv/bin
 PY    := $(VENV)/python
 
-.PHONY: help setup dev dev-backend dev-frontend lint test ac-check ac-check-strict check sandbox migrate eval demo-data summary openapi api e2e
+.PHONY: help setup dev dev-backend dev-frontend lint test ac-check ac-check-strict check sandbox migrate eval demo-data summary openapi api e2e preflight smoke
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -31,6 +31,13 @@ migrate: ## Create or upgrade the local database (fme.db)
 
 demo-data: migrate ## Load the SYNTHETIC demo run (recorded responses, no live calls)
 	cd backend && FME_MODELS_FILE=../config/models.demo.yaml .venv/bin/python -m app.eval run --models demo-claude demo-gpt --call-cap 100 --label synthetic-demo
+
+preflight: ## Check Claude Code and Codex are installed and signed in with the subscriptions (no model calls)
+	cd backend && .venv/bin/python -m app.eval preflight
+
+smoke: migrate ## LIVE, tiny: 1 judged task per model = 4 calls (architect only). Run before `make eval`
+	cd backend && .venv/bin/python -m app.eval run --models $(or $(MODELS),claude-pro gpt-go) \
+		--categories test_design --tiers simple --call-cap 6 --label smoke
 
 eval: migrate ## LIVE run on your subscriptions (architect only). Usage: make eval MODELS="claude-pro gpt-go"
 	cd backend && .venv/bin/python -m app.eval run --models $(MODELS) --call-cap $(or $(CAP),80)
