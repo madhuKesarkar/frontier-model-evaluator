@@ -1,0 +1,20 @@
+# Recorded demo models (access_mode: fixture). Their responses in backend/fixtures/demo/
+# are SYNTHETIC, written to exercise the screens; they are not real model output.
+# Prices are illustrative list prices for API-equivalent cost display only.
+models:
+  - key: demo-claude
+    provider: anthropic
+    access_mode: fixture
+    model_id: synthetic-claude
+    display_name: "Demo Claude (synthetic)"
+    context_window: 200000
+    price_input_per_mtok: 3.00
+    price_output_per_mtok: 15.00
+  - key: demo-gpt
+    provider: openai
+    access_mode: fixture
+    model_id: synthetic-gpt
+    display_name: "Demo GPT (synthetic)"
+    context_window: 128000
+    price_input_per_mtok: 1.25
+    price_output_per_mtok: 10.00

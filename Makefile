@@ -5,7 +5,7 @@ SHELL := /bin/bash
 VENV  := backend/.venv/bin
 PY    := $(VENV)/python
 
-.PHONY: help setup dev dev-backend dev-frontend lint test ac-check ac-check-strict check sandbox migrate eval demo-data summary openapi api e2e preflight smoke calibrate
+.PHONY: help setup dev dev-backend dev-frontend lint test ac-check ac-check-strict check sandbox migrate eval demo-data summary openapi api e2e preflight smoke calibrate snapshot
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -41,6 +41,9 @@ smoke: migrate ## LIVE, tiny: 1 judged task per model = 4 calls (architect only)
 
 calibrate: ## LIVE judge check: each judge grades 6 golden + 6 seeded answers (SM-3/SM-4), ~24 calls (architect only)
 	cd backend && .venv/bin/python -m app.eval calibrate
+
+snapshot: ## Freeze the latest completed run into deploy/ for the read-only public demo
+	$(PY) scripts/make_snapshot.py
 
 eval: migrate ## LIVE run on your subscriptions (architect only). Usage: make eval MODELS="claude-pro gpt-go"
 	cd backend && .venv/bin/python -m app.eval run --models $(MODELS) --call-cap $(or $(CAP),80)
