@@ -1,0 +1,24 @@
+# Render Blueprint: the read-only demo API (D-13, free tier). Serves the committed snapshot
+# in deploy/ and never calls a model: no CLI is installed here and FME_READ_ONLY=1 refuses
+# every write. FME_CORS_ORIGINS is set in the Render dashboard once the Netlify URL exists.
+services:
+  - type: web
+    name: fme-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -e .
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.4
+      - key: FME_READ_ONLY
+        value: "1"
+      - key: FME_DATABASE_URL
+        value: sqlite:////opt/render/project/src/deploy/fme.db
+      - key: FME_MODELS_FILE
+        value: /opt/render/project/src/deploy/models.yaml
+      - key: FME_CORS_ORIGINS
+        sync: false

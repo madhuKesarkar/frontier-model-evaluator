@@ -1,0 +1,22 @@
+# Netlify: the read-only demo frontend (D-13, free tier). Set VITE_API_BASE_URL in the
+# Netlify site settings to the Render API origin, e.g. https://fme-api.onrender.com
+[build]
+  base = "frontend"
+  command = "npm ci && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Single-page app: every route serves index.html (e.g. /models/claude-pro on refresh).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "DENY"
