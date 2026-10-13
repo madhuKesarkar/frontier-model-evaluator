@@ -2,9 +2,9 @@
 # category, each with the owner's 1-5 label. The judge passes if it scores at least 5 of 6
 # within +/-1 of the label.
 #
-# Drafted by the coding agent on 2026-10-12. `human_score` values are PROPOSALS until the
-# architect reviews them: `labelled_by` changes to "architect" once she approves or edits.
-labelled_by: proposed
+# Answers and reasons drafted by the coding agent; every `human_score` was reviewed and
+# approved unchanged by the architect (Madhu) on 2026-10-12.
+labelled_by: architect
 items:
   - id: G-CG
     task_id: CG-C-01
